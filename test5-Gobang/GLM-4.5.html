@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>萌宠五子棋 - 人机对战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #FFE5F1 0%, #E8F8FF 50%, #FFF4E6 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 星星背景 */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+        }
+
+        /* 游戏容器 */
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 90%;
+            backdrop-filter: blur(10px);
+        }
+
+        /* 游戏标题 */
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .game-title {
+            font-size: 2.5em;
+            color: #FF6B9D;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            font-weight: bold;
+        }
+
+        .game-subtitle {
+            font-size: 1.2em;
+            color: #8B7CF6;
+            margin-bottom: 20px;
+        }
+
+        /* 游戏信息栏 */
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #FFE5F1 0%, #E8F8FF 100%);
+            border-radius: 20px;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            transition: transform 0.3s ease;
+        }
+
+        .player-avatar.active {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px rgba(255, 107, 157, 0.5);
+        }
+
+        .player-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #5D5D5D;
+        }
+
+        /* 棋盘 */
+        .board-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .board {
+            background: #FFF8F3;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .board-grid {
+            display: grid;
+            grid-template-columns: repeat(15, 30px);
+            grid-template-rows: repeat(15, 30px);
+            gap: 0;
+            position: relative;
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .cell::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #FFB6C1;
+            opacity: 0.5;
+        }
+
+        .cell::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: #FFB6C1;
+            opacity: 0.5;
+        }
+
+        .cell:hover {
+            background: rgba(255, 182, 193, 0.2);
+            border-radius: 50%;
+        }
+
+        /* 棋子 */
+        .piece {
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: placepiece 0.3s ease;
+            cursor: default;
+            z-index: 10;
+        }
+
+        @keyframes placepiece {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* 控制按钮 */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FF6B9D 0%, #C44569 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #8B7CF6 0%, #667EEA 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 124, 246, 0.4);
+        }
+
+        /* 游戏结果弹窗 */
+        .game-result {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .game-result.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .result-title {
+            font-size: 2em;
+            color: #FF6B9D;
+            margin-bottom: 20px;
+        }
+
+        .result-emoji {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        /* 胜利连线 */
+        .win-line {
+            position: absolute;
+            background: #FFD93D;
+            height: 4px;
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(255, 217, 61, 0.8);
+            z-index: 20;
+            animation: winline 0.5s ease;
+        }
+
+        @keyframes winline {
+            0% { transform: scaleX(0); }
+            100% { transform: scaleX(1); }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+            }
+            
+            .board-grid {
+                grid-template-columns: repeat(15, 20px);
+                grid-template-rows: repeat(15, 20px);
+            }
+            
+            .cell {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .piece {
+                width: 18px;
+                height: 18px;
+                font-size: 16px;
+            }
+            
+            .game-title {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 星星背景 -->
+    <div class="stars" id="stars"></div>
+
+    <!-- 游戏容器 -->
+    <div class="game-container">
+        <!-- 游戏标题 -->
+        <div class="game-header">
+            <h1 class="game-title">🐾 萌宠五子棋 🐾</h1>
+            <p class="game-subtitle">和可爱的小动物一起下棋吧！</p>
+        </div>
+
+        <!-- 游戏信息 -->
+        <div class="game-info">
+            <div class="player-info">
+                <div class="player-avatar" id="playerAvatar">🐱</div>
+                <div>
+                    <div class="player-name">你（猫咪）</div>
+                </div>
+            </div>
+            <div class="player-info">
+                <div class="player-avatar" id="aiAvatar">🐼</div>
+                <div>
+                    <div class="player-name">电脑（熊猫）</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 棋盘 -->
+        <div class="board-container">
+            <div class="board">
+                <div class="board-grid" id="board"></div>
+            </div>
+        </div>
+
+        <!-- 控制按钮 -->
+        <div class="controls">
+            <button class="btn btn-primary" onclick="resetGame()">重新开始</button>
+            <button class="btn btn-secondary" onclick="showHelp()">游戏帮助</button>
+        </div>
+    </div>
+
+    <!-- 游戏结果弹窗 -->
+    <div class="game-result" id="gameResult">
+        <div class="result-emoji" id="resultEmoji"></div>
+        <h2 class="result-title" id="resultTitle"></h2>
+        <button class="btn btn-primary" onclick="resetGame()">再来一局</button>
+    </div>
+
+    <script>
+        // 游戏状态
+        const BOARD_SIZE = 15;
+        let board = [];
+        let currentPlayer = 1; // 1: 玩家(猫咪), 2: AI(熊猫)
+        let gameOver = false;
+        let playerTurn = true;
+
+        // 初始化游戏
+        function initGame() {
+            board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0));
+            gameOver = false;
+            currentPlayer = 1;
+            playerTurn = true;
+            createBoard();
+            updatePlayerIndicator();
+            createStars();
+        }
+
+        // 创建星星背景
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            starsContainer.innerHTML = '';
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // 创建棋盘
+        function createBoard() {
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
+            
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    cell.onclick = () => handleCellClick(i, j);
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+
+        // 处理点击事件
+        function handleCellClick(row, col) {
+            if (gameOver || !playerTurn || board[row][col] !== 0) {
+                return;
+            }
+
+            // 玩家下棋
+            placePiece(row, col, 1);
+            
+            if (checkWin(row, col, 1)) {
+                endGame('恭喜你赢了！', '🎉');
+                return;
+            }
+
+            if (checkDraw()) {
+                endGame('平局！', '🤝');
+                return;
+            }
+
+            // AI回合
+            playerTurn = false;
+            updatePlayerIndicator();
+            setTimeout(() => {
+                aiMove();
+            }, 500);
+        }
+
+        // 放置棋子
+        function placePiece(row, col, player) {
+            board[row][col] = player;
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            const piece = document.createElement('div');
+            piece.className = 'piece';
+            piece.textContent = player === 1 ? '🐱' : '🐼';
+            cell.appendChild(piece);
+        }
+
+        // AI移动
+        function aiMove() {
+            const move = findBestMove();
+            if (move) {
+                placePiece(move.row, move.col, 2);
+                
+                if (checkWin(move.row, move.col, 2)) {
+                    endGame('熊猫赢了！', '😢');
+                    return;
+                }
+
+                if (checkDraw()) {
+                    endGame('平局！', '🤝');
+                    return;
+                }
+            }
+
+            playerTurn = true;
+            updatePlayerIndicator();
+        }
+
+        // 简单的AI策略
+        function findBestMove() {
+            // 优先级：进攻 > 防守 > 随机
+            
+            // 检查是否能赢
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    if (board[i][j] === 0) {
+                        board[i][j] = 2;
+                        if (checkWin(i, j, 2)) {
+                            board[i][j] = 0;
+                            return { row: i, col: j };
+                        }
+                        board[i][j] = 0;
+                    }
+                }
+            }
+
+            // 检查是否需要防守
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    if (board[i][j] === 0) {
+                        board[i][j] = 1;
+                        if (checkWin(i, j, 1)) {
+                            board[i][j] = 0;
+                            return { row: i, col: j };
+                        }
+                        board[i][j] = 0;
+                    }
+                }
+            }
+
+            // 随机选择
+            const emptyCells = [];
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    if (board[i][j] === 0) {
+                        emptyCells.push({ row: i, col: j });
+                    }
+                }
+            }
+
+            if (emptyCells.length > 0) {
+                return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            }
+
+            return null;
+        }
+
+        // 检查获胜
+        function checkWin(row, col, player) {
+            const directions = [
+                [[0, 1], [0, -1]],   // 水平
+                [[1, 0], [-1, 0]],   // 垂直
+                [[1, 1], [-1, -1]],  // 对角线1
+                [[1, -1], [-1, 1]]   // 对角线2
+            ];
+
+            for (const direction of directions) {
+                let count = 1;
+                let positions = [{row, col}];
+
+                for (const [dr, dc] of direction) {
+                    let r = row + dr;
+                    let c = col + dc;
+
+                    while (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE && board[r][c] === player) {
+                        count++;
+                        positions.push({row: r, col: c});
+                        r += dr;
+                        c += dc;
+                    }
+                }
+
+                if (count >= 5) {
+                    // drawWinLine(positions);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // 检查平局
+        function checkDraw() {
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    if (board[i][j] === 0) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        // 更新玩家指示器
+        function updatePlayerIndicator() {
+            const playerAvatar = document.getElementById('playerAvatar');
+            const aiAvatar = document.getElementById('aiAvatar');
+            
+            if (playerTurn) {
+                playerAvatar.classList.add('active');
+                aiAvatar.classList.remove('active');
+            } else {
+                playerAvatar.classList.remove('active');
+                aiAvatar.classList.add('active');
+            }
+        }
+
+        // 游戏结束
+        function endGame(message, emoji) {
+            gameOver = true;
+            const resultElement = document.getElementById('gameResult');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultEmoji = document.getElementById('resultEmoji');
+            
+            resultTitle.textContent = message;
+            resultEmoji.textContent = emoji;
+            resultElement.classList.add('show');
+        }
+
+        // 重置游戏
+        function resetGame() {
+            const resultElement = document.getElementById('gameResult');
+            resultElement.classList.remove('show');
+            initGame();
+        }
+
+        // 显示帮助
+        function showHelp() {
+            alert('游戏规则：\n\n1. 你扮演可爱的猫咪 🐱\n2. 电脑是憨厚的熊猫 🐼\n3. 轮流在棋盘上放置棋子\n4. 先连成五子的一方获胜\n5. 可以横、竖、斜连线\n\n祝你游戏愉快！');
+        }
+
+        // 初始化
+        initGame();
+    </script>
+</body>
+</html>

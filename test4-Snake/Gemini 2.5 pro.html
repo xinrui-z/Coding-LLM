@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红白机风格贪吃蛇</title>
+    <style>
+        /* 引入免费的像素字体 */
+        @font-face {
+            font-family: 'PressStart2P';
+            src: url('https://fonts.gstatic.com/s/pressstart2p/v15/e3t4euO8T-267oIAQAu6jDQyK3nVivM.woff2') format('woff2');
+        }
+
+        body {
+            background-color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'PressStart2P', cursive;
+            color: #FFF;
+        }
+
+        .game-container {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #FEF200; /* 亮黄色 */
+            text-shadow: 2px 2px #000;
+        }
+
+        #gameCanvas {
+            background-color: #000;
+            border: 4px solid #FFF;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .info {
+            display: flex;
+            justify-content: space-between;
+            width: 600px; /* 与Canvas宽度相同 */
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #AAA;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h1>像素贪吃蛇</h1>
+    <div class="info">
+        <div id="score">SCORE: 0</div>
+        <div id="highScore">HIGH-SCORE: 0</div>
+    </div>
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <div class="instructions">
+        使用方向键或WASD移动。按空格键重新开始。
+    </div>
+</div>
+
+<!-- 游戏音效 -->
+<audio id="eatSound" src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU9vT19JAxAUFhYfIiIjJSUoKCkqKywsLzAzMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/w=="></audio>
+<audio id="gameOverSound" src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU9vT19P/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v-"></audio>
+
+<script>
+    // --- 游戏设置 ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const gridSize = 20; // 每个格子的尺寸（像素）
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+
+    // --- 颜色配置 ---
+    const SNAKE_COLOR = '#00FF00'; // 蛇的亮绿色
+    const SNAKE_BORDER_COLOR = '#000000'; // 蛇的黑色边框
+    const FOOD_COLOR = '#FF0000'; // 食物的红色
+    const GAME_OVER_TEXT_COLOR = '#FF0000'; // 游戏结束文字颜色
+
+    // --- 音效 ---
+    const eatSound = document.getElementById('eatSound');
+    const gameOverSound = document.getElementById('gameOverSound');
+
+    // --- 游戏变量 ---
+    let snake = [];
+    let food = {};
+    let dx = gridSize; // 水平速度
+    let dy = 0;       // 垂直速度
+    let score = 0;
+    let highScore = localStorage.getItem('snakeHighScore') || 0;
+    let changingDirection = false;
+    let gameRunning = false;
+    let gameLoop;
+
+    // --- DOM 元素 ---
+    const scoreDisplay = document.getElementById('score');
+    const highScoreDisplay = document.getElementById('highScore');
+
+    // --- 主游戏循环 ---
+    function main() {
+        if (!gameRunning) {
+            showGameOver();
+            return;
+        }
+
+        // 延迟下一次方向改变的锁定
+        changingDirection = false;
+
+        // 清空画布
+        clearCanvas();
+        // 绘制元素
+        drawFood();
+        moveSnake();
+        drawSnake();
+
+        // 检查游戏是否结束
+        if (hasGameEnded()) {
+            gameRunning = false;
+            updateHighScore();
+            gameOverSound.currentTime = 0;
+            gameOverSound.play();
+            // 延迟显示游戏结束画面，让玩家看到最后一次碰撞
+            setTimeout(showGameOver, 50);
+        }
+    }
+
+    // --- 初始化/重置游戏 ---
+    function startGame() {
+        if (gameLoop) clearInterval(gameLoop);
+
+        gameRunning = true;
+        score = 0;
+        dx = gridSize;
+        dy = 0;
+        
+        // 创建初始的蛇
+        snake = [
+            {x: 140, y: 200},
+            {x: 120, y: 200},
+            {x: 100, y: 200},
+            {x: 80, y: 200}
+        ];
+
+        updateScoreDisplay();
+        updateHighScoreDisplay();
+        generateFood();
+        
+        // 设置游戏速度
+        gameLoop = setInterval(main, 100);
+    }
+
+    // --- 绘图函数 ---
+    function clearCanvas() {
+        ctx.fillStyle = '#000'; // NES 风格的黑色背景
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    }
+
+    function drawSnakePart(part) {
+        ctx.fillStyle = SNAKE_COLOR;
+        ctx.strokeStyle = SNAKE_BORDER_COLOR;
+        ctx.fillRect(part.x, part.y, gridSize, gridSize);
+        ctx.strokeRect(part.x, part.y, gridSize, gridSize);
+    }
+
+    function drawSnake() {
+        snake.forEach(drawSnakePart);
+    }
+
+    function drawFood() {
+        ctx.fillStyle = FOOD_COLOR;
+        ctx.strokeStyle = SNAKE_BORDER_COLOR;
+        ctx.fillRect(food.x, food.y, gridSize, gridSize);
+        ctx.strokeRect(food.x, food.y, gridSize, gridSize);
+    }
+
+    // --- 游戏逻辑 ---
+    function moveSnake() {
+        // 创建新的蛇头
+        const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+        snake.unshift(head);
+
+        // 检查是否吃到食物
+        if (head.x === food.x && head.y === food.y) {
+            score += 10;
+            updateScoreDisplay();
+            eatSound.currentTime = 0;
+            eatSound.play();
+            generateFood();
+        } else {
+            // 如果没吃到，移除蛇尾
+            snake.pop();
+        }
+    }
+    
+    function randomPosition(min, max) {
+        return Math.round((Math.random() * (max - min) + min) / gridSize) * gridSize;
+    }
+
+    function generateFood() {
+        food.x = randomPosition(0, canvasWidth - gridSize);
+        food.y = randomPosition(0, canvasHeight - gridSize);
+
+        // 确保食物不生成在蛇身上
+        snake.forEach(part => {
+            if (part.x === food.x && part.y === food.y) {
+                generateFood();
+            }
+        });
+    }
+
+    // --- 碰撞检测 ---
+    function hasGameEnded() {
+        // 撞到自己
+        for (let i = 4; i < snake.length; i++) {
+            if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) {
+                return true;
+            }
+        }
+        // 撞到墙
+        const hitLeftWall = snake[0].x < 0;
+        const hitRightWall = snake[0].x > canvasWidth - gridSize;
+        const hitTopWall = snake[0].y < 0;
+        const hitBottomWall = snake[0].y > canvasHeight - gridSize;
+
+        return hitLeftWall || hitRightWall || hitTopWall || hitBottomWall;
+    }
+
+    // --- 控制与UI ---
+    function changeDirection(event) {
+        if (changingDirection) return;
+        changingDirection = true;
+
+        const keyPressed = event.key;
+        const goingUp = dy === -gridSize;
+        const goingDown = dy === gridSize;
+        const goingRight = dx === gridSize;
+        const goingLeft = dx === -gridSize;
+
+        if ((keyPressed === "ArrowLeft" || keyPressed.toLowerCase() === "a") && !goingRight) {
+            dx = -gridSize;
+            dy = 0;
+        }
+        if ((keyPressed === "ArrowUp" || keyPressed.toLowerCase() === "w") && !goingDown) {
+            dx = 0;
+            dy = -gridSize;
+        }
+        if ((keyPressed === "ArrowRight" || keyPressed.toLowerCase() === "d") && !goingRight) {
+            dx = gridSize;
+            dy = 0; 
+        }
+        if ((keyPressed === "ArrowDown" || keyPressed.toLowerCase() === "s") && !goingUp) {
+            dx = 0;
+            dy = gridSize;
+        } 
+        
+        // 按空格键重新开始
+        if (keyPressed === " " && !gameRunning) {
+            startGame();
+        }
+    }
+    
+    function showGameOver() {
+        clearCanvas(); // 清空画布
+        ctx.font = "40px 'PressStart2P'";
+        ctx.fillStyle = GAME_OVER_TEXT_COLOR;
+        ctx.textAlign = 'center';
+        ctx.fillText("GAME OVER", canvasWidth / 2, canvasHeight / 2 - 20);
+        
+        ctx.font = "16px 'PressStart2P'";
+        ctx.fillStyle = '#FFF';
+        ctx.fillText(`SCORE: ${score}`, canvasWidth / 2, canvasHeight / 2 + 20);
+        ctx.fillText("按空格键重新开始", canvasWidth / 2, canvasHeight / 2 + 60);
+    }
+    
+    function updateScoreDisplay() {
+        scoreDisplay.textContent = `SCORE: ${score}`;
+    }
+    
+    function updateHighScoreDisplay() {
+        highScoreDisplay.textContent = `HIGH-SCORE: ${highScore}`;
+    }
+
+    function updateHighScore() {
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('snakeHighScore', highScore);
+            updateHighScoreDisplay();
+        }
+    }
+    
+    // --- 事件监听 ---
+    document.addEventListener("keydown", changeDirection);
+
+    // --- 初始加载 ---
+    // 页面加载后，先显示一个“准备开始”的画面
+    window.onload = () => {
+        updateHighScoreDisplay();
+        ctx.font = "20px 'PressStart2P'";
+        ctx.fillStyle = '#FFF';
+        ctx.textAlign = 'center';
+        ctx.fillText("按空格键开始游戏", canvasWidth / 2, canvasHeight / 2);
+    };
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>萌宠五子棋 - 人机对战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #FFE4E1 0%, #E6E6FA 50%, #F0F8FF 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 星星背景装饰 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #FFD700, transparent),
+                radial-gradient(2px 2px at 40px 70px, #FFA500, transparent),
+                radial-gradient(1px 1px at 90px 40px, #FFB6C1, transparent),
+                radial-gradient(1px 1px at 130px 80px, #98FB98, transparent),
+                radial-gradient(2px 2px at 160px 30px, #87CEEB, transparent);
+            background-size: 200px 100px;
+            animation: sparkle 3s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes sparkle {
+            0% { transform: translateY(0px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        /* 游戏标题 */
+        .game-title {
+            background: linear-gradient(45deg, #FF69B4, #FFB347, #98FB98);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: bounce 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes bounce {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-5px); }
+        }
+
+        /* 游戏容器 */
+        .game-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            margin: 20px;
+        }
+
+        /* 游戏信息栏 */
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(45deg, #FFE4E1, #E6E6FA);
+            border-radius: 20px;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .player-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: wiggle 2s ease-in-out infinite;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(5deg); }
+            75% { transform: rotate(-5deg); }
+        }
+
+        .current-turn {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255,105,180,0.5);
+        }
+
+        /* 棋盘样式 */
+        .board-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .board {
+            background: linear-gradient(45deg, #F5DEB3, #DEB887);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .board-grid {
+            display: grid;
+            grid-template-columns: repeat(15, 30px);
+            grid-template-rows: repeat(15, 30px);
+            gap: 1px;
+            background: #8B4513;
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            background: #DEB887;
+            border: 1px solid #8B4513;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .cell:hover:empty {
+            background: rgba(255,182,193,0.5);
+            transform: scale(1.1);
+        }
+
+        .cell.occupied {
+            cursor: not-allowed;
+        }
+
+        /* 棋子动画 */
+        .piece {
+            animation: placepiece 0.5s ease-out;
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
+        }
+
+        @keyframes placepiece {
+            0% { transform: scale(0) rotate(180deg); opacity: 0; }
+            50% { transform: scale(1.3) rotate(90deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        /* 控制按钮 */
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-restart {
+            background: linear-gradient(45deg, #FF6B6B, #FFE66D);
+            color: white;
+        }
+
+        .btn-restart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255,107,107,0.4);
+        }
+
+        /* 游戏结果弹窗 */
+        .game-result {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .result-content {
+            background: linear-gradient(45deg, #FFE4E1, #E6E6FA);
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: popup 0.5s ease-out;
+        }
+
+        @keyframes popup {
+            0% { transform: scale(0) rotate(180deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .result-emoji {
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: celebrate 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes celebrate {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.2); }
+        }
+
+        .result-text {
+            font-size: 24px;
+            color: #FF69B4;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 2em;
+            }
+            
+            .board-grid {
+                grid-template-columns: repeat(15, 25px);
+                grid-template-rows: repeat(15, 25px);
+            }
+            
+            .cell {
+                width: 25px;
+                height: 25px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="game-title">🎮 萌宠五子棋 🎮</h1>
+    
+    <div class="game-container">
+        <div class="game-info">
+            <div class="player-info" id="player-info">
+                <div class="player-avatar" style="background: #FFB6C1;">🐱</div>
+                <span>小猫咪 (你)</span>
+            </div>
+            <div style="font-size: 18px; color: #FF69B4; font-weight: bold;">VS</div>
+            <div class="player-info" id="ai-info">
+                <div class="player-avatar" style="background: #98FB98;">🐼</div>
+                <span>熊猫宝宝 (电脑)</span>
+            </div>
+        </div>
+
+        <div class="board-container">
+            <div class="board">
+                <div class="board-grid" id="board"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-restart" onclick="restartGame()">
+                🔄 重新开始
+            </button>
+        </div>
+    </div>
+
+    <!-- 游戏结果弹窗 -->
+    <div class="game-result" id="game-result">
+        <div class="result-content">
+            <div class="result-emoji" id="result-emoji"></div>
+            <div class="result-text" id="result-text"></div>
+            <button class="btn btn-restart" onclick="closeResult(); restartGame();">
+                🎮 再来一局
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        let board = Array(15).fill().map(() => Array(15).fill(0));
+        let currentPlayer = 1; // 1: 玩家(猫咪), 2: AI(熊猫)
+        let gameOver = false;
+
+        // 初始化游戏
+        function initGame() {
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
+            
+            for (let i = 0; i < 15; i++) {
+                for (let j = 0; j < 15; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    cell.addEventListener('click', handleCellClick);
+                    boardElement.appendChild(cell);
+                }
+            }
+            
+            updateTurnIndicator();
+        }
+
+        // 处理点击事件
+        function handleCellClick(event) {
+            if (gameOver || currentPlayer !== 1) return;
+            
+            const row = parseInt(event.target.dataset.row);
+            const col = parseInt(event.target.dataset.col);
+            
+            if (board[row][col] !== 0) return;
+            
+            makeMove(row, col, 1);
+        }
+
+        // 执行移动
+        function makeMove(row, col, player) {
+            board[row][col] = player;
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            
+            const piece = document.createElement('span');
+            piece.className = 'piece';
+            piece.textContent = player === 1 ? '🐱' : '🐼';
+            cell.appendChild(piece);
+            cell.classList.add('occupied');
+            
+            // 检查胜利
+            if (checkWin(row, col, player)) {
+                gameOver = true;
+                setTimeout(() => showResult(player), 500);
+                return;
+            }
+            
+            // 检查平局
+            if (isBoardFull()) {
+                gameOver = true;
+                setTimeout(() => showResult(0), 500);
+                return;
+            }
+            
+            // 切换玩家
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateTurnIndicator();
+            
+            // AI回合
+            if (currentPlayer === 2 && !gameOver) {
+                setTimeout(aiMove, 800);
+            }
+        }
+
+        // AI移动
+        function aiMove() {
+            const move = getBestMove();
+            if (move) {
+                makeMove(move.row, move.col, 2);
+            }
+        }
+
+        // 获取最佳移动位置（简单AI逻辑）
+        function getBestMove() {
+            // 首先尝试获胜
+            for (let i = 0; i < 15; i++) {
+                for (let j = 0; j < 15; j++) {
+                    if (board[i][j] === 0) {
+                        board[i][j] = 2;
+                        if (checkWin(i, j, 2)) {
+                            board[i][j] = 0;
+                            return { row: i, col: j };
+                        }
+                        board[i][j] = 0;
+                    }
+                }
+            }
+            
+            // 阻止玩家获胜
+            for (let i = 0; i < 15; i++) {
+                for (let j = 0; j < 15; j++) {
+                    if (board[i][j] === 0) {
+                        board[i][j] = 1;
+                        if (checkWin(i, j, 1)) {
+                            board[i][j] = 0;
+                            return { row: i, col: j };
+                        }
+                        board[i][j] = 0;
+                    }
+                }
+            }
+            
+            // 随机选择空位
+            const emptyCells = [];
+            for (let i = 0; i < 15; i++) {
+                for (let j = 0; j < 15; j++) {
+                    if (board[i][j] === 0) {
+                        emptyCells.push({ row: i, col: j });
+                    }
+                }
+            }
+            
+            if (emptyCells.length > 0) {
+                return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            }
+            
+            return null;
+        }
+
+        // 检查胜利
+        function checkWin(row, col, player) {
+            const directions = [
+                [1, 0], [0, 1], [1, 1], [1, -1]
+            ];
+            
+            for (let [dx, dy] of directions) {
+                let count = 1;
+                
+                // 向前计数
+                for (let i = 1; i < 5; i++) {
+                    const newRow = row + dx * i;
+                    const newCol = col + dy * i;
+                    if (newRow >= 0 && newRow < 15 && newCol >= 0 && newCol < 15 && board[newRow][newCol] === player) {
+                        count++;
+                    } else {
+                        break;
+                    }
+                }
+                
+                // 向后计数
+                for (let i = 1; i < 5; i++) {
+                    const newRow = row - dx * i;
+                    const newCol = col - dy * i;
+                    if (newRow >= 0 && newRow < 15 && newCol >= 0 && newCol < 15 && board[newRow][newCol] === player) {
+                        count++;
+                    } else {
+                        break;
+                    }
+                }
+                
+                if (count >= 5) return true;
+            }
+            
+            return false;
+        }
+
+        // 检查棋盘是否已满
+        function isBoardFull() {
+            for (let i = 0; i < 15; i++) {
+                for (let j = 0; j < 15; j++) {
+                    if (board[i][j] === 0) return false;
+                }
+            }
+            return true;
+        }
+
+        // 更新回合指示器
+        function updateTurnIndicator() {
+            const playerInfo = document.getElementById('player-info');
+            const aiInfo = document.getElementById('ai-info');
+            
+            if (currentPlayer === 1) {
+                playerInfo.classList.add('current-turn');
+                aiInfo.classList.remove('current-turn');
+            } else {
+                playerInfo.classList.remove('current-turn');
+                aiInfo.classList.add('current-turn');
+            }
+        }
+
+        // 显示游戏结果
+        function showResult(winner) {
+            const resultModal = document.getElementById('game-result');
+            const resultEmoji = document.getElementById('result-emoji');
+            const resultText = document.getElementById('result-text');
+            
+            if (winner === 1) {
+                resultEmoji.textContent = '🎉🐱🎉';
+                resultText.textContent = '恭喜！小猫咪获胜了！';
+            } else if (winner === 2) {
+                resultEmoji.textContent = '🐼💪';
+                resultText.textContent = '熊猫宝宝获胜了！再试一次吧！';
+            } else {
+                resultEmoji.textContent = '🤝';
+                resultText.textContent = '平局！大家都很棒！';
+            }
+            
+            resultModal.style.display = 'flex';
+        }
+
+        // 关闭结果弹窗
+        function closeResult() {
+            document.getElementById('game-result').style.display = 'none';
+        }
+
+        // 重新开始游戏
+        function restartGame() {
+            board = Array(15).fill().map(() => Array(15).fill(0));
+            currentPlayer = 1;
+            gameOver = false;
+            initGame();
+        }
+
+        // 初始化游戏
+        initGame();
+    </script>
+</body>
+</html>

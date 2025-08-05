@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打工人时钟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .clock-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .title {
+            color: #fff;
+            font-size: 28px;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .time-display {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .current-time {
+            font-size: 48px;
+            color: #fff;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .current-date {
+            font-size: 20px;
+            color: #e0e0e0;
+        }
+
+        .work-status {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .status-text {
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            color: #e0e0e0;
+            font-size: 16px;
+        }
+
+        .motivation {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .motivation-text {
+            color: #fff;
+            font-size: 18px;
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        .emoji {
+            font-size: 30px;
+            margin: 0 10px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="clock-container">
+        <h1 class="title">打工人时钟</h1>
+        
+        <div class="time-display">
+            <div class="current-time" id="currentTime">00:00:00</div>
+            <div class="current-date" id="currentDate">2024年1月1日 星期一</div>
+        </div>
+
+        <div class="work-status">
+            <div class="status-text" id="statusText">正在加载...</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">0%</div>
+        </div>
+
+        <div class="motivation">
+            <div class="motivation-text" id="motivationText">
+                <span class="emoji">💪</span>
+                今天也要加油鸭！打工人打工魂，打工都是人上人！
+                <span class="emoji">🚀</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 励志语录数组
+        const motivationalQuotes = [
+            "今天不努力工作，明天努力找工作！",
+            "打工人打工魂，打工都是人上人！",
+            "只要干不死，就往死里干！",
+            "上班使我快乐，加班让我充实！",
+            "今天搬砖不狠，明天地位不稳！",
+            "没有困难的工作，只有勇敢的打工人！",
+            "打工可能会少活十年，不打工你一天也活不下去！",
+            "累吗？累就对了，舒服是留给有钱人的！",
+            "早安，打工人！今天又是元气满满的一天！",
+            "打工人，打工魂，打工永远难封神！"
+        ];
+
+        // 获取当前工作状态
+        function getWorkStatus() {
+            const now = new Date();
+            const hour = now.getHours();
+            const day = now.getDay();
+            
+            // 周末
+            if (day === 0 || day === 6) {
+                return { status: "周末愉快！好好休息吧！", progress: 100, isWork: false };
+            }
+            
+            // 工作日
+            if (hour < 9) {
+                const progress = ((hour * 60 + now.getMinutes()) / (9 * 60)) * 100;
+                return { status: "距离上班还有时间，再睡会儿吧！", progress: Math.min(progress, 100), isWork: false };
+            } else if (hour >= 9 && hour < 12) {
+                const progress = ((hour - 9) * 60 + now.getMinutes()) / 180 * 100;
+                return { status: "上午工作时间，加油！", progress: Math.min(progress, 100), isWork: true };
+            } else if (hour >= 12 && hour < 13) {
+                return { status: "午休时间，好好吃饭！", progress: 50, isWork: false };
+            } else if (hour >= 13 && hour < 18) {
+                const progress = 50 + ((hour - 13) * 60 + now.getMinutes()) / 300 * 50;
+                return { status: "下午工作时间，坚持就是胜利！", progress: Math.min(progress, 100), isWork: true };
+            } else if (hour >= 18 && hour < 21) {
+                const progress = ((hour - 18) * 60 + now.getMinutes()) / 180 * 100;
+                return { status: "加班时间，打工人永不认输！", progress: Math.min(progress, 100), isWork: true };
+            } else {
+                return { status: "辛苦一天了，早点休息吧！", progress: 100, isWork: false };
+            }
+        }
+
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            
+            // 更新时间
+            const timeString = now.toLocaleTimeString('zh-CN', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+            
+            // 更新日期
+            const dateString = now.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            });
+            document.getElementById('currentDate').textContent = dateString;
+            
+            // 更新工作状态
+            const workStatus = getWorkStatus();
+            document.getElementById('statusText').textContent = workStatus.status;
+            document.getElementById('progressFill').style.width = workStatus.progress + '%';
+            document.getElementById('progressText').textContent = Math.round(workStatus.progress) + '%';
+            
+            // 随机更新励志语录
+            if (Math.random() < 0.1) { // 10%概率更新
+                const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+                document.getElementById('motivationText').innerHTML = `
+                    <span class="emoji">💪</span>
+                    ${randomQuote}
+                    <span class="emoji">🚀</span>
+                `;
+            }
+        }
+
+        // 初始化
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // 添加点击效果
+        document.querySelector('.clock-container').addEventListener('click', function() {
+            this.classList.add('pulse');
+            setTimeout(() => {
+                this.classList.remove('pulse');
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

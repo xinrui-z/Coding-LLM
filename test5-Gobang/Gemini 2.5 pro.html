@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人机对战 - 可爱动物五子棋</title>
+    <style>
+        /* Google Font for a softer, rounded look */
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap');
+
+        :root {
+            --board-bg: #fdf6e4; /* 棋盘背景色 - 柔和米色 */
+            --line-color: #dcdcdc; /* 棋盘线条色 - 浅灰 */
+            --player-color: #87ceeb; /* 玩家提示色 - 天蓝 */
+            --ai-color: #f08080; /* AI 提示色 - 淡珊瑚红 */
+            --button-bg: #a8e6cf; /* 按钮背景 - 薄荷绿 */
+            --button-hover-bg: #87d8b5; /* 按钮悬停背景 */
+            --container-bg: rgba(255, 255, 255, 0.85); /* 容器背景 - 半透明白 */
+            --text-color: #5d5d5d; /* 主要文字颜色 */
+            --star-color: rgba(255, 255, 255, 0.7); /* 星星颜色 */
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Nunito', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ffdde1 0%, #ee9ca7 25%, #a6c1ee 75%, #fbc2eb 100%);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Twinkling stars background effect */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            box-shadow: 
+                5vw 10vh 2px var(--star-color),
+                15vw 80vh 1px var(--star-color),
+                25vw 30vh 3px var(--star-color),
+                40vw 90vh 2px var(--star-color),
+                55vw 20vh 1px var(--star-color),
+                65vw 70vh 3px var(--star-color),
+                80vw 15vh 2px var(--star-color),
+                95vw 60vh 1px var(--star-color),
+                7vw 45vh 2px var(--star-color),
+                90vw 95vh 3px var(--star-color);
+            animation: twinkle 15s linear infinite;
+        }
+
+        @keyframes twinkle {
+            0% { transform: translateY(0); opacity: 0.7; }
+            50% { transform: translateY(-20px); opacity: 1; }
+            100% { transform: translateY(0); opacity: 0.7; }
+        }
+
+        .game-container {
+            background-color: var(--container-bg);
+            padding: 30px;
+            border-radius: 25px; /* 圆润边缘 */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        h1 {
+            color: var(--text-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(15, 40px);
+            grid-template-rows: repeat(15, 40px);
+            border: 2px solid var(--line-color);
+            background-color: var(--line-color);
+            gap: 1px; /* 用 gap 形成线条 */
+            position: relative;
+            border-radius: 10px; /* 棋盘也圆润 */
+            overflow: hidden; /* 保证内部 cell 的背景色不溢出 */
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            background-color: var(--board-bg);
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .cell:hover:not(.placed)::after {
+            content: '';
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            background-image: var(--player-piece-url);
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0.4; /* 悬停时的虚影效果 */
+            border-radius: 50%;
+        }
+
+        .cell.placed {
+            cursor: not-allowed;
+        }
+
+        .piece {
+            width: 85%;
+            height: 85%;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 50%;
+            animation: place-piece 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .piece.player {
+            background-image: var(--player-piece-url);
+        }
+
+        .piece.ai {
+            background-image: var(--ai-piece-url);
+        }
+
+        @keyframes place-piece {
+            from {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .status-bar {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #fff9c4; /* 淡黄色提示背景 */
+            border-radius: 15px;
+            color: var(--text-color);
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            min-height: 28px;
+        }
+
+        #restart-button {
+            margin-top: 20px;
+            padding: 12px 25px;
+            border: none;
+            background-color: var(--button-bg);
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            font-family: 'Nunito', sans-serif;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #restart-button:hover {
+            background-color: var(--button-hover-bg);
+            transform: translateY(-2px);
+        }
+        
+        #restart-button:active {
+            transform: translateY(0);
+        }
+
+        /* 响应式设计，适配小屏幕 */
+        @media (max-width: 700px) {
+            body {
+                padding: 10px;
+                align-items: flex-start;
+            }
+            .game-container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            #board {
+                grid-template-columns: repeat(15, 5.5vw);
+                grid-template-rows: repeat(15, 5.5vw);
+            }
+            .cell {
+                 width: 5.5vw;
+                 height: 5.5vw;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 卡通棋子 SVG 定义 -->
+    <svg width="0" height="0" style="position:absolute;">
+      <defs>
+        <!-- 熊猫棋子 -->
+        <g id="panda-piece">
+          <circle cx="50" cy="50" r="48" fill="white"/>
+          <circle cx="30" cy="35" r="12" fill="#333"/>
+          <circle cx="70" cy="35" r="12" fill="#333"/>
+          <circle cx="32" cy="38" r="4" fill="white"/>
+          <circle cx="68" cy="38" r="4" fill="white"/>
+          <path d="M50 45 a15 15 0 0 0 0 15 a5 5 0 0 1 0 -15" fill="#333"/>
+          <path d="M40 65 Q 50 75 60 65" stroke="#333" stroke-width="3" fill="none" stroke-linecap="round"/>
+        </g>
+        <!-- 猫咪棋子 -->
+        <g id="cat-piece">
+          <circle cx="50" cy="50" r="48" fill="#FFDDC1"/>
+          <path d="M10 20 Q 20 0 40 15 Z" fill="#FFA07A"/>
+          <path d="M90 20 Q 80 0 60 15 Z" fill="#FFA07A"/>
+          <circle cx="38" cy="50" r="5" fill="#5D4037"/>
+          <circle cx="62" cy="50" r="5" fill="#5D4037"/>
+          <path d="M45 60 L 55 60 L 50 68 Z" fill="#FF8A80"/>
+          <path d="M30 65 Q 20 60 20 50 M70 65 Q 80 60 80 50" stroke="#E91E63" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </g>
+      </defs>
+    </svg>
+
+    <div class="game-container">
+        <h1>动物五子棋</h1>
+        <div id="board"></div>
+        <div id="status-bar" class="status-bar">游戏开始！请你先走棋。</div>
+        <button id="restart-button">重新开始</button>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const boardElement = document.getElementById('board');
+        const statusBarElement = document.getElementById('status-bar');
+        const restartButton = document.getElementById('restart-button');
+        const root = document.documentElement;
+
+        const BOARD_SIZE = 15;
+        const PLAYER = 1; // 玩家
+        const AI = 2; // AI
+        
+        let boardState = [];
+        let currentPlayer = PLAYER;
+        let gameOver = false;
+
+        // 使用 SVG 作为棋子背景
+        const pandaSVG = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${document.getElementById('panda-piece').innerHTML}</svg>`;
+        const catSVG = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${document.getElementById('cat-piece').innerHTML}</svg>`;
+        
+        const playerPieceURL = `url("data:image/svg+xml;base64,${btoa(pandaSVG)}")`;
+        const aiPieceURL = `url("data:image/svg+xml;base64,${btoa(catSVG)}")`;
+
+        root.style.setProperty('--player-piece-url', playerPieceURL);
+        root.style.setProperty('--ai-piece-url', aiPieceURL);
+
+        function initGame() {
+            boardState = Array(BOARD_SIZE).fill(0).map(() => Array(BOARD_SIZE).fill(0));
+            boardElement.innerHTML = '';
+            gameOver = false;
+            currentPlayer = PLAYER;
+            statusBarElement.textContent = '游戏开始！请你先走棋（熊猫）。';
+            statusBarElement.style.backgroundColor = '#fff9c4';
+
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    cell.addEventListener('click', handleCellClick);
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+        
+        function handleCellClick(event) {
+            if (gameOver || currentPlayer !== PLAYER) return;
+            
+            const cell = event.target;
+            const row = parseInt(cell.dataset.row);
+            const col = parseInt(cell.dataset.col);
+
+            if (boardState[row][col] === 0) {
+                placePiece(row, col, PLAYER);
+                if (checkWin(row, col, PLAYER)) {
+                    endGame('恭喜你获胜！太棒了！');
+                    return;
+                }
+                
+                if (isBoardFull()) {
+                    endGame('平局！再来一盘吧！');
+                    return;
+                }
+
+                switchPlayer();
+                // AI turn with a slight delay
+                setTimeout(aiTurn, 500);
+            }
+        }
+
+        function placePiece(row, col, player) {
+            boardState[row][col] = player;
+            const cell = boardElement.children[row * BOARD_SIZE + col];
+            cell.classList.add('placed');
+            const piece = document.createElement('div');
+            piece.classList.add('piece', player === PLAYER ? 'player' : 'ai');
+            cell.appendChild(piece);
+        }
+
+        function switchPlayer() {
+            currentPlayer = (currentPlayer === PLAYER) ? AI : PLAYER;
+            if (!gameOver) {
+                if (currentPlayer === PLAYER) {
+                    statusBarElement.textContent = '轮到你了（熊猫），请落子。';
+                } else {
+                    statusBarElement.textContent = 'AI（猫咪）正在思考...';
+                }
+            }
+        }
+
+        function aiTurn() {
+            if (gameOver) return;
+            const { row, col } = findBestMove();
+            placePiece(row, col, AI);
+
+            if (checkWin(row, col, AI)) {
+                endGame('AI 获胜了，下次努力哦！');
+                return;
+            }
+            if (isBoardFull()) {
+                endGame('平局！再来一盘吧！');
+                return;
+            }
+
+            switchPlayer();
+        }
+
+        function findBestMove() {
+            // 1. Check if AI can win in one move
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    if (boardState[i][j] === 0) {
+                        boardState[i][j] = AI;
+                        if (checkWin(i, j, AI)) {
+                            boardState[i][j] = 0; // backtrack
+                            return { row: i, col: j };
+                        }
+                        boardState[i][j] = 0; // backtrack
+                    }
+                }
+            }
+
+            // 2. Check if player can win, and block them
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    if (boardState[i][j] === 0) {
+                        boardState[i][j] = PLAYER;
+                        if (checkWin(i, j, PLAYER)) {
+                            boardState[i][j] = 0; // backtrack
+                            return { row: i, col: j };
+                        }
+                        boardState[i][j] = 0; // backtrack
+                    }
+                }
+            }
+
+            // 3. Simple heuristic: place near existing player pieces
+            const candidates = [];
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                for (let j = 0; j < BOARD_SIZE; j++) {
+                    if (boardState[i][j] !== 0) continue;
+                    // Check neighbors
+                    for (let dx = -1; dx <= 1; dx++) {
+                        for (let dy = -1; dy <= 1; dy++) {
+                            if (dx === 0 && dy === 0) continue;
+                            const ni = i + dx;
+                            const nj = j + dy;
+                            if (ni >= 0 && ni < BOARD_SIZE && nj >= 0 && nj < BOARD_SIZE && boardState[ni][nj] !== 0) {
+                                candidates.push({row: i, col: j});
+                                break; // break inner loop
+                            }
+                        }
+                        if(candidates.length > 0 && candidates[candidates.length-1].row === i && candidates[candidates.length-1].col === j) break; // break outer loop
+                    }
+                }
+            }
+            
+            if (candidates.length > 0) {
+                return candidates[Math.floor(Math.random() * candidates.length)];
+            }
+            
+            // 4. Fallback: play in the center or a random empty spot
+            if (boardState[7][7] === 0) return {row: 7, col: 7};
+            let emptyCells = [];
+            for(let i=0; i<BOARD_SIZE; i++) {
+                for(let j=0; j<BOARD_SIZE; j++) {
+                    if(boardState[i][j] === 0) emptyCells.push({row: i, col: j});
+                }
+            }
+            return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        }
+
+
+        function checkWin(row, col, player) {
+            const directions = [
+                [1, 0], // Horizontal
+                [0, 1], // Vertical
+                [1, 1], // Diagonal \
+                [1, -1] // Diagonal /
+            ];
+
+            for (const [dx, dy] of directions) {
+                let count = 1;
+                // Check in one direction
+                for (let i = 1; i < 5; i++) {
+                    const newRow = row + i * dx;
+                    const newCol = col + i * dy;
+                    if (newRow >= 0 && newRow < BOARD_SIZE && newCol >= 0 && newCol < BOARD_SIZE && boardState[newRow][newCol] === player) {
+                        count++;
+                    } else {
+                        break;
+                    }
+                }
+                // Check in the opposite direction
+                for (let i = 1; i < 5; i++) {
+                    const newRow = row - i * dx;
+                    const newCol = col - i * dy;
+                    if (newRow >= 0 && newRow < BOARD_SIZE && newCol >= 0 && newCol < BOARD_SIZE && boardState[newRow][newCol] === player) {
+                        count++;
+                    } else {
+                        break;
+                    }
+                }
+                if (count >= 5) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function isBoardFull() {
+            return boardState.every(row => row.every(cell => cell !== 0));
+        }
+
+        function endGame(message) {
+            gameOver = true;
+            statusBarElement.textContent = message;
+            statusBarElement.style.backgroundColor = message.includes('恭喜') ? 'var(--button-bg)' : '#f8bbd0';
+        }
+
+        restartButton.addEventListener('click', initGame);
+
+        // Initial game setup
+        initGame();
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打工人时钟 - 今天摸鱼了吗？</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            overflow: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 90%;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .clock-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .clock-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .time-display {
+            font-size: 72px;
+            font-weight: 300;
+            color: #333;
+            font-family: 'Courier New', monospace;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 2px;
+        }
+
+        .date-display {
+            font-size: 18px;
+            color: #666;
+            margin-top: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .work-info {
+            background: #fff;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .info-row:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .info-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .progress-section {
+            margin-bottom: 30px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            transition: width 1s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(100%); }
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .countdown {
+            text-align: center;
+            font-size: 36px;
+            font-weight: bold;
+            padding: 20px;
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            border-radius: 20px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .countdown::before {
+            content: '🎉';
+            position: absolute;
+            font-size: 100px;
+            opacity: 0.1;
+            right: -20px;
+            top: -30px;
+        }
+
+        .mood-section {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .mood-text {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .mood-emoji {
+            font-size: 60px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .settings {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .settings:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 90%;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .setting-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        @media (max-width: 600px) {
+            .time-display {
+                font-size: 48px;
+            }
+            .countdown {
+                font-size: 24px;
+            }
+            .mood-emoji {
+                font-size: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">打工人时钟</h1>
+            <p class="subtitle">今天又是元气满满的一天！💪</p>
+        </div>
+
+        <div class="clock-section">
+            <div class="time-display" id="time">00:00:00</div>
+            <div class="date-display" id="date">2024年1月1日 星期一</div>
+        </div>
+
+        <div class="work-info">
+            <div class="info-row">
+                <span class="info-label">上班时间</span>
+                <span class="info-value" id="startTime">09:00</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">下班时间</span>
+                <span class="info-value" id="endTime">18:00</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">工作时长</span>
+                <span class="info-value" id="workDuration">9小时</span>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <div class="progress-text" id="progressText">工作进度: 0%</div>
+        </div>
+
+        <div class="countdown" id="countdown">
+            距离下班还有: --:--:--
+        </div>
+
+        <div class="mood-section">
+            <div class="mood-text" id="moodText">加油！你可以的！</div>
+            <div class="mood-emoji" id="moodEmoji">💼</div>
+        </div>
+    </div>
+
+    <div class="settings" onclick="openSettings()">⚙️</div>
+
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">工作设置</div>
+            <div class="setting-item">
+                <label class="setting-label">上班时间</label>
+                <input type="time" class="setting-input" id="setStartTime" value="09:00">
+            </div>
+            <div class="setting-item">
+                <label class="setting-label">下班时间</label>
+                <input type="time" class="setting-input" id="setEndTime" value="18:00">
+            </div>
+            <button class="save-btn" onclick="saveSettings()">保存设置</button>
+        </div>
+    </div>
+
+    <script>
+        // 默认工作时间
+        let workStartTime = '09:00';
+        let workEndTime = '18:00';
+
+        // 从localStorage读取设置
+        function loadSettings() {
+            const savedStartTime = localStorage.getItem('workStartTime');
+            const savedEndTime = localStorage.getItem('workEndTime');
+            if (savedStartTime) workStartTime = savedStartTime;
+            if (savedEndTime) workEndTime = savedEndTime;
+            updateDisplay();
+        }
+
+        // 保存设置
+        function saveSettings() {
+            workStartTime = document.getElementById('setStartTime').value;
+            workEndTime = document.getElementById('setEndTime').value;
+            localStorage.setItem('workStartTime', workStartTime);
+            localStorage.setItem('workEndTime', workEndTime);
+            updateDisplay();
+            closeSettings();
+        }
+
+        // 打开设置
+        function openSettings() {
+            document.getElementById('setStartTime').value = workStartTime;
+            document.getElementById('setEndTime').value = workEndTime;
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        // 关闭设置
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        // 点击模态框外部关闭
+        document.getElementById('settingsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSettings();
+            }
+        });
+
+        // 更新显示
+        function updateDisplay() {
+            document.getElementById('startTime').textContent = workStartTime;
+            document.getElementById('endTime').textContent = workEndTime;
+            
+            // 计算工作时长
+            const start = new Date(`2000-01-01 ${workStartTime}`);
+            const end = new Date(`2000-01-01 ${workEndTime}`);
+            const duration = (end - start) / (1000 * 60 * 60);
+            document.getElementById('workDuration').textContent = `${duration}小时`;
+        }
+
+        // 更新时钟
+        function updateClock() {
+            const now = new Date();
+            
+            // 更新时间
+            const timeString = now.toLocaleTimeString('zh-CN', { hour12: false });
+            document.getElementById('time').textContent = timeString;
+            
+            // 更新日期
+            const dateString = now.toLocaleDateString('zh-CN', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                weekday: 'long' 
+            });
+            document.getElementById('date').textContent = dateString;
+            
+            // 计算工作进度
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+            const startTime = parseInt(workStartTime.split(':')[0]) * 60 + parseInt(workStartTime.split(':')[1]);
+            const endTime = parseInt(workEndTime.split(':')[0]) * 60 + parseInt(workEndTime.split(':')[1]);
+            
+            let progress = 0;
+            let countdownText = '距离下班还有: --:--:--';
+            let moodText = '还没到上班时间哦~';
+            let moodEmoji = '😴';
+            
+            if (currentTime >= startTime && currentTime <= endTime) {
+                // 工作时间内
+                progress = ((currentTime - startTime) / (endTime - startTime)) * 100;
+                const remainingMinutes = endTime - currentTime;
+                const hours = Math.floor(remainingMinutes / 60);
+                const minutes = remainingMinutes % 60;
+                countdownText = `距离下班还有: ${hours}小时${minutes}分钟`;
+                
+                // 根据进度调整心情
+                if (progress < 20) {
+                    moodText = '新的一天，加油！';
+                    moodEmoji = '💪';
+                } else if (progress < 40) {
+                    moodText = '工作进行中，保持专注！';
+                    moodEmoji = '🧠';
+                } else if (progress < 60) {
+                    moodText = '一半了，再坚持一下！';
+                    moodEmoji = '⏰';
+                } else if (progress < 80) {
+                    moodText = '胜利在望，冲啊！';
+                    moodEmoji = '🚀';
+                } else {
+                    moodText = '马上就下班了！';
+                    moodEmoji = '🎉';
+                }
+            } else if (currentTime > endTime) {
+                // 已下班
+                progress = 100;
+                countdownText = '已经下班啦！🎉';
+                moodText = '下班啦！享受生活吧！';
+                moodEmoji = '🎊';
+            }
+            
+            // 更新进度条
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `工作进度: ${Math.round(progress)}%`;
+            
+            // 更新倒计时
+            document.getElementById('countdown').textContent = countdownText;
+            
+            // 更新心情
+            document.getElementById('moodText').textContent = moodText;
+            document.getElementById('moodEmoji').textContent = moodEmoji;
+        }
+
+        // 初始化
+        loadSettings();
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>

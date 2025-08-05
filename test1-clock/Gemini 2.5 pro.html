@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打工人时钟</title>
+    <style>
+        /* --- 页面基础样式 --- */
+        :root {
+            --primary-color: #333;
+            --secondary-color: #666;
+            --background-color: #f4f7f6;
+            --card-background: #ffffff;
+            --accent-color: #007bff;
+            --progress-bar-bg: #e9ecef;
+            --border-color: #dee2e6;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--primary-color);
+            padding: 20px;
+        }
+
+        /* --- 主容器样式 --- */
+        .container {
+            background-color: var(--card-background);
+            padding: 30px 40px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        /* --- 标题 --- */
+        h1 {
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 2.2em;
+        }
+
+        /* --- 时钟和日期 --- */
+        #clock {
+            font-size: 3.5em;
+            font-weight: 600;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        #date {
+            font-size: 1.2em;
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+        }
+
+        /* --- 工作状态区域 --- */
+        .status-container {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+        }
+
+        #status-message {
+            font-size: 1.5em;
+            font-weight: 500;
+            color: var(--accent-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        /* --- 进度条 --- */
+        .progress-bar {
+            background-color: var(--progress-bar-bg);
+            border-radius: 20px;
+            height: 20px;
+            width: 100%;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        #progress {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #1e90ff, #00bfff);
+            border-radius: 20px;
+            transition: width 1s ease-in-out;
+        }
+
+        /* --- 倒计时 --- */
+        #countdown {
+            font-size: 1.1em;
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+
+        #countdown span {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        /* --- 摸鱼语录 --- */
+        .quote-container {
+            margin-top: 20px;
+            padding: 15px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        #quote {
+            font-size: 1em;
+            font-style: italic;
+            color: var(--secondary-color);
+            min-height: 40px; /* 防止切换语录时高度变化 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- 响应式设计 --- */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            #clock {
+                font-size: 2.8em;
+            }
+            #date {
+                font-size: 1em;
+            }
+            #status-message {
+                font-size: 1.3em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>摸鱼办 çalışma saati</h1>
+        
+        <div id="clock">--:--:--</div>
+        <div id="date">----年--月--日 星期-</div>
+
+        <div class="status-container">
+            <h2 id="status-message">正在初始化...</h2>
+            <div class="progress-bar">
+                <div id="progress"></div>
+            </div>
+            <p id="countdown">计算中...</p>
+        </div>
+
+        <div class="quote-container">
+            <p id="quote">“摸鱼是为了更好地工作。”</p>
+        </div>
+    </div>
+
+    <script>
+        // --- 配置项 ---
+        const workStartTime = 9;  // 上班时间（小时）
+        const workEndTime = 18;   // 下班时间（小时）
+        const lunchStartTime = 12; // 午休开始时间
+        const lunchEndTime = 13.5; // 午休结束时间 (13.5 = 13:30)
+
+        // --- 打工人语录 ---
+        const quotes = [
+            "打工累吗？累。但是我不能哭，因为骑电动车的时候擦眼泪不安全。",
+            "有人相爱，有人夜里看海，有人七八个闹钟醒不来。",
+            "工作是干不完的，钱是挣不完的，但命是自己的。",
+            "上班为了下班，下班为了第二天上班，原来我上的是“上上签”。",
+            "只要我够努力，老板很快就能过上他想要的生活。",
+            "摸鱼不是不干活，是劳逸结合，科学规划。",
+            "工作再忙，一定记得摸鱼。薪水再少，一定记得去浪。",
+            "上班是帮老板赚钱，摸鱼是给自己赚钱。",
+            "世上无难事，只要肯放弃。",
+            "别跟我谈理想，我的理想就是不上班。"
+        ];
+
+        // --- 获取页面元素 ---
+        const clockEl = document.getElementById('clock');
+        const dateEl = document.getElementById('date');
+        const statusMessageEl = document.getElementById('status-message');
+        const progressEl = document.getElementById('progress');
+        const countdownEl = document.getElementById('countdown');
+        const quoteEl = document.getElementById('quote');
+
+        // --- 更新函数 ---
+        function updateClock() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const week = ['日', '一', '二', '三', '四', '五', '六'][now.getDay()];
+            
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            // 更新时间和日期显示
+            clockEl.textContent = `${hours}:${minutes}:${seconds}`;
+            dateEl.textContent = `${year}年${month}月${day}日 星期${week}`;
+
+            // --- 核心逻辑：更新状态、进度条和倒计时 ---
+            const currentHour = now.getHours() + now.getMinutes() / 60;
+            const isWeekend = now.getDay() === 0 || now.getDay() === 6;
+
+            if (isWeekend) {
+                // 周末
+                statusMessageEl.textContent = "周末愉快！好好休息！";
+                progressEl.style.width = '100%';
+                progressEl.style.background = 'linear-gradient(90deg, #6a11cb, #2575fc)';
+                countdownEl.innerHTML = "今天不上班，享受生活吧！";
+            } else if (currentHour < workStartTime) {
+                // 上班前
+                statusMessageEl.textContent = "上班倒计时...准备打卡！";
+                progressEl.style.width = '0%';
+                const timeToWork = new Date(now.toDateString());
+                timeToWork.setHours(workStartTime, 0, 0, 0);
+                updateCountdown(timeToWork, "距离上班");
+            } else if (currentHour >= workEndTime) {
+                // 下班后
+                statusMessageEl.textContent = "下班啦！今天辛苦了！";
+                progressEl.style.width = '100%';
+                progressEl.style.background = 'linear-gradient(90deg, #38ef7d, #11998e)';
+                countdownEl.innerHTML = "已下班，请立刻关闭此页面！";
+            } else {
+                // 工作时间内
+                // 更新进度条
+                const workDuration = workEndTime - workStartTime;
+                const timeWorked = currentHour - workStartTime;
+                let progressPercentage = (timeWorked / workDuration) * 100;
+                progressPercentage = Math.max(0, Math.min(100, progressPercentage));
+                progressEl.style.width = `${progressPercentage}%`;
+
+                // 更新倒计时
+                const timeToGoHome = new Date(now.toDateString());
+                timeToGoHome.setHours(workEndTime, 0, 0, 0);
+                updateCountdown(timeToGoHome, "距离下班");
+
+                // 更新状态信息
+                if (currentHour >= lunchStartTime && currentHour < lunchEndTime) {
+                    statusMessageEl.textContent = "干饭/午休时间，补充能量！";
+                } else if (currentHour >= workStartTime && currentHour < lunchStartTime) {
+                    statusMessageEl.textContent = "上午好，开始搬砖！";
+                } else if (currentHour >= lunchEndTime && currentHour < workEndTime - 1) {
+                    statusMessageEl.textContent = "下午好，坚持就是胜利！";
+                } else {
+                    statusMessageEl.textContent = "最后冲刺，准备下班！";
+                }
+            }
+        }
+        
+        function updateCountdown(targetDate, prefix) {
+            const now = new Date();
+            const diff = targetDate - now;
+            
+            if (diff <= 0) return;
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            countdownEl.innerHTML = `${prefix}还有 <span>${String(hours).padStart(2, '0')}</span> 时 <span>${String(minutes).padStart(2, '0')}</span> 分 <span>${String(seconds).padStart(2, '0')}</span> 秒`;
+        }
+
+        function updateQuote() {
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            quoteEl.textContent = `“${quotes[randomIndex]}”`;
+        }
+
+        // --- 初始化和定时器 ---
+        updateClock(); // 立即执行一次，避免页面打开时有延迟
+        updateQuote(); // 初始语录
+
+        setInterval(updateClock, 1000); // 每秒更新时钟
+        setInterval(updateQuote, 10000); // 每10秒换一句语录
+    </script>
+</body>
+</html>

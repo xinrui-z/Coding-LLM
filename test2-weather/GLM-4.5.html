@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动画天气预报卡</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .weather-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .weather-animation {
+            height: 200px;
+            position: relative;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        /* 晴天动画 */
+        .sunny {
+            background: linear-gradient(to bottom, #87CEEB, #98FB98);
+        }
+
+        .sun {
+            width: 80px;
+            height: 80px;
+            background: #FFD700;
+            border-radius: 50%;
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: sunRotate 10s linear infinite;
+            box-shadow: 0 0 30px #FFD700;
+        }
+
+        .sun::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
+            border-radius: 50%;
+            border: 3px solid #FFD700;
+            animation: sunRays 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes sunRotate {
+            0% { transform: translateX(-50%) rotate(0deg); }
+            100% { transform: translateX(-50%) rotate(360deg); }
+        }
+
+        @keyframes sunRays {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.2); opacity: 0.4; }
+        }
+
+        .cloud {
+            width: 60px;
+            height: 20px;
+            background: #fff;
+            border-radius: 20px;
+            position: absolute;
+            animation: cloudFloat 8s ease-in-out infinite;
+        }
+
+        .cloud::before,
+        .cloud::after {
+            content: '';
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        .cloud::before {
+            width: 25px;
+            height: 25px;
+            top: -12px;
+            left: 8px;
+        }
+
+        .cloud::after {
+            width: 35px;
+            height: 35px;
+            top: -15px;
+            right: 8px;
+        }
+
+        .cloud1 {
+            top: 60px;
+            left: 20px;
+            animation-delay: 0s;
+        }
+
+        .cloud2 {
+            top: 100px;
+            right: 30px;
+            animation-delay: -4s;
+        }
+
+        @keyframes cloudFloat {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(20px); }
+        }
+
+        /* 雨天动画 */
+        .rainy {
+            background: linear-gradient(to bottom, #636e72, #2d3436);
+        }
+
+        .rain-cloud {
+            width: 100px;
+            height: 40px;
+            background: #74b9ff;
+            border-radius: 20px;
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: cloudDark 2s ease-in-out infinite alternate;
+        }
+
+        .rain-cloud::before,
+        .rain-cloud::after {
+            content: '';
+            position: absolute;
+            background: #74b9ff;
+            border-radius: 50%;
+        }
+
+        .rain-cloud::before {
+            width: 40px;
+            height: 40px;
+            top: -20px;
+            left: 15px;
+        }
+
+        .rain-cloud::after {
+            width: 50px;
+            height: 50px;
+            top: -25px;
+            right: 15px;
+        }
+
+        @keyframes cloudDark {
+            0% { background: #74b9ff; }
+            100% { background: #0984e3; }
+        }
+
+        .raindrop {
+            width: 2px;
+            height: 15px;
+            background: linear-gradient(to bottom, transparent, #74b9ff);
+            position: absolute;
+            animation: rainFall 1s linear infinite;
+        }
+
+        .raindrop:nth-child(2) { left: 45%; animation-delay: 0.2s; }
+        .raindrop:nth-child(3) { left: 50%; animation-delay: 0.4s; }
+        .raindrop:nth-child(4) { left: 55%; animation-delay: 0.6s; }
+        .raindrop:nth-child(5) { left: 60%; animation-delay: 0.8s; }
+
+        @keyframes rainFall {
+            0% {
+                top: 80px;
+                opacity: 1;
+            }
+            100% {
+                top: 180px;
+                opacity: 0;
+            }
+        }
+
+        /* 多云动画 */
+        .cloudy {
+            background: linear-gradient(to bottom, #ddd, #bbb);
+        }
+
+        .cloudy-cloud {
+            width: 80px;
+            height: 30px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            position: absolute;
+            animation: cloudyFloat 6s ease-in-out infinite;
+        }
+
+        .cloudy-cloud::before,
+        .cloudy-cloud::after {
+            content: '';
+            position: absolute;
+            background: #f8f9fa;
+            border-radius: 50%;
+        }
+
+        .cloudy-cloud::before {
+            width: 35px;
+            height: 35px;
+            top: -17px;
+            left: 12px;
+        }
+
+        .cloudy-cloud::after {
+            width: 45px;
+            height: 45px;
+            top: -22px;
+            right: 12px;
+        }
+
+        .cloudy-cloud1 {
+            top: 50px;
+            left: 30px;
+            animation-delay: 0s;
+        }
+
+        .cloudy-cloud2 {
+            top: 80px;
+            right: 40px;
+            animation-delay: -3s;
+        }
+
+        .cloudy-cloud3 {
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation-delay: -1.5s;
+        }
+
+        @keyframes cloudyFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* 天气信息 */
+        .weather-info {
+            margin-bottom: 20px;
+        }
+
+        .temperature {
+            font-size: 48px;
+            font-weight: bold;
+            color: #2d3436;
+            margin-bottom: 10px;
+        }
+
+        .weather-type {
+            font-size: 24px;
+            color: #636e72;
+            margin-bottom: 15px;
+        }
+
+        .weather-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .detail-item {
+            background: rgba(116, 185, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #636e72;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        /* 天气切换按钮 */
+        .weather-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .weather-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #ddd;
+            color: #666;
+        }
+
+        .weather-btn.active {
+            background: #74b9ff;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .weather-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 400px) {
+            .weather-card {
+                width: 300px;
+                padding: 20px;
+            }
+            
+            .temperature {
+                font-size: 36px;
+            }
+            
+            .weather-type {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="weather-card">
+        <div class="weather-animation" id="weatherAnimation">
+            <!-- 晴天动画 -->
+            <div class="sunny" id="sunnyWeather">
+                <div class="sun"></div>
+                <div class="cloud cloud1"></div>
+                <div class="cloud cloud2"></div>
+            </div>
+            
+            <!-- 雨天动画 -->
+            <div class="rainy" id="rainyWeather" style="display: none;">
+                <div class="rain-cloud"></div>
+                <div class="raindrop"></div>
+                <div class="raindrop"></div>
+                <div class="raindrop"></div>
+                <div class="raindrop"></div>
+                <div class="raindrop"></div>
+            </div>
+            
+            <!-- 多云动画 -->
+            <div class="cloudy" id="cloudyWeather" style="display: none;">
+                <div class="cloudy-cloud cloudy-cloud1"></div>
+                <div class="cloudy-cloud cloudy-cloud2"></div>
+                <div class="cloudy-cloud cloudy-cloud3"></div>
+            </div>
+        </div>
+        
+        <div class="weather-info">
+            <div class="temperature" id="temperature">25°C</div>
+            <div class="weather-type" id="weatherType">晴天</div>
+            
+            <div class="weather-details">
+                <div class="detail-item">
+                    <div class="detail-label">湿度</div>
+                    <div class="detail-value" id="humidity">65%</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">风速</div>
+                    <div class="detail-value" id="windSpeed">12 km/h</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">体感温度</div>
+                    <div class="detail-value" id="feelsLike">27°C</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">能见度</div>
+                    <div class="detail-value" id="visibility">10 km</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="weather-controls">
+            <button class="weather-btn active" onclick="changeWeather('sunny')">晴天</button>
+            <button class="weather-btn" onclick="changeWeather('rainy')">雨天</button>
+            <button class="weather-btn" onclick="changeWeather('cloudy')">多云</button>
+        </div>
+    </div>
+
+    <script>
+        const weatherData = {
+            sunny: {
+                temperature: '25°C',
+                type: '晴天',
+                humidity: '65%',
+                windSpeed: '12 km/h',
+                feelsLike: '27°C',
+                visibility: '10 km'
+            },
+            rainy: {
+                temperature: '18°C',
+                type: '雨天',
+                humidity: '85%',
+                windSpeed: '8 km/h',
+                feelsLike: '16°C',
+                visibility: '5 km'
+            },
+            cloudy: {
+                temperature: '22°C',
+                type: '多云',
+                humidity: '75%',
+                windSpeed: '10 km/h',
+                feelsLike: '23°C',
+                visibility: '8 km'
+            }
+        };
+
+        function changeWeather(weather) {
+            // 隐藏所有天气动画
+            document.getElementById('sunnyWeather').style.display = 'none';
+            document.getElementById('rainyWeather').style.display = 'none';
+            document.getElementById('cloudyWeather').style.display = 'none';
+            
+            // 显示选中的天气动画
+            document.getElementById(weather + 'Weather').style.display = 'block';
+            
+            // 更新天气数据
+            const data = weatherData[weather];
+            document.getElementById('temperature').textContent = data.temperature;
+            document.getElementById('weatherType').textContent = data.type;
+            document.getElementById('humidity').textContent = data.humidity;
+            document.getElementById('windSpeed').textContent = data.windSpeed;
+            document.getElementById('feelsLike').textContent = data.feelsLike;
+            document.getElementById('visibility').textContent = data.visibility;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.weather-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 添加切换动画效果
+            const weatherAnimation = document.getElementById('weatherAnimation');
+            weatherAnimation.style.transform = 'scale(0.95)';
+            weatherAnimation.style.opacity = '0.7';
+            
+            setTimeout(() => {
+                weatherAnimation.style.transform = 'scale(1)';
+                weatherAnimation.style.opacity = '1';
+            }, 200);
+        }
+
+        // 页面加载时的初始化动画
+        window.addEventListener('load', () => {
+            const weatherCard = document.querySelector('.weather-card');
+            weatherCard.style.transform = 'translateY(20px)';
+            weatherCard.style.opacity = '0';
+            
+            setTimeout(() => {
+                weatherCard.style.transition = 'all 0.6s ease';
+                weatherCard.style.transform = 'translateY(0)';
+                weatherCard.style.opacity = '1';
+            }, 100);
+        });
+
+        // 添加键盘控制
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case '1':
+                    changeWeather('sunny');
+                    break;
+                case '2':
+                    changeWeather('rainy');
+                    break;
+                case '3':
+                    changeWeather('cloudy');
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

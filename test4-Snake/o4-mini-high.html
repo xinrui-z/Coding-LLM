@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>红白机风格贪吃蛇</title>
+  <style>
+    /* 全屏居中，背景灰黑，画布放大渲染像素 */
+    body {
+      margin: 0; padding: 0;
+      background: #222;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    canvas {
+      image-rendering: pixelated; /* 保持像素风格 */
+      image-rendering: crisp-edges;
+      background: #141414;        /* NES 暗灰背景 */
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="256" height="240"></canvas>
+
+  <script>
+    // 画布及缩放
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    canvas.style.width  = (256 * 2) + 'px';
+    canvas.style.height = (240 * 2) + 'px';
+
+    // 网格 & 调色板
+    const CELL = 8;              // 每格 8×8 像素
+    const COLS = 256 / CELL;     // 32 列
+    const ROWS = 240 / CELL;     // 30 行
+    const PALETTE = {
+      bg:    '#141414',  // 背景
+      snake: '#FFFFFF',  // 蛇身
+      head:  '#FF5555',  // 蛇头
+      apple: '#55FF55',  // 苹果
+      text:  '#FFFFFF'   // 文字
+    };
+
+    // 游戏状态
+    let snake, dir, nextDir, apple, score, gameOver;
+
+    function init() {
+      // 初始蛇：长度 5，水平靠中
+      snake = [];
+      const midX = Math.floor(COLS / 2);
+      const midY = Math.floor(ROWS / 2);
+      for (let i = 0; i < 5; i++) {
+        snake.push({ x: midX - i, y: midY });
+      }
+      dir = { x: 1, y: 0 };
+      nextDir = { x: 1, y: 0 };
+      score = 0;
+      gameOver = false;
+      placeApple();
+    }
+
+    function placeApple() {
+      // 随机放置苹果，不与蛇身重叠
+      do {
+        apple = {
+          x: Math.floor(Math.random() * COLS),
+          y: Math.floor(Math.random() * ROWS)
+        };
+      } while (snake.some(p => p.x === apple.x && p.y === apple.y));
+    }
+
+    // 键盘控制
+    window.addEventListener('keydown', e => {
+      if (gameOver && e.key === 'Enter') {
+        init(); return;
+      }
+      // 方向：上下左右，防止 180° 掉头
+      if (e.key === 'ArrowLeft' && dir.x !== 1)  nextDir = { x: -1, y: 0 };
+      if (e.key === 'ArrowUp'   && dir.y !== 1)  nextDir = { x: 0,  y: -1 };
+      if (e.key === 'ArrowRight'&& dir.x !== -1) nextDir = { x: 1,  y: 0 };
+      if (e.key === 'ArrowDown' && dir.y !== -1) nextDir = { x: 0,  y: 1 };
+    });
+
+    function update() {
+      if (gameOver) return;
+      dir = nextDir;
+      const head = {
+        x: snake[0].x + dir.x,
+        y: snake[0].y + dir.y
+      };
+      // 撞墙或撞到自己 = 结束
+      if (
+        head.x < 0 || head.x >= COLS ||
+        head.y < 0 || head.y >= ROWS ||
+        snake.some(p => p.x === head.x && p.y === head.y)
+      ) {
+        gameOver = true;
+        return;
+      }
+      // 前插新头
+      snake.unshift(head);
+      // 吃到苹果就加分并重置苹果，否则去尾
+      if (head.x === apple.x && head.y === apple.y) {
+        score++;
+        placeApple();
+      } else {
+        snake.pop();
+      }
+    }
+
+    function draw() {
+      // 背景
+      ctx.fillStyle = PALETTE.bg;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 苹果
+      ctx.fillStyle = PALETTE.apple;
+      ctx.fillRect(apple.x * CELL, apple.y * CELL, CELL, CELL);
+
+      // 蛇身
+      snake.forEach((p, i) => {
+        ctx.fillStyle = (i === 0) ? PALETTE.head : PALETTE.snake;
+        ctx.fillRect(p.x * CELL, p.y * CELL, CELL, CELL);
+      });
+
+      // 分数
+      ctx.fillStyle = PALETTE.text;
+      ctx.font = '8px bold monospace';
+      ctx.fillText('Score: ' + score, 4, 10);
+
+      // Game Over 提示
+      if (gameOver) {
+        ctx.fillStyle = PALETTE.head;
+        ctx.fillText('GAME OVER', 80, 120);
+        ctx.fillText('Press Enter', 72, 136);
+      }
+    }
+
+    // 启动游戏循环
+    init();
+    setInterval(() => {
+      update();
+      draw();
+    }, 100);  // 调整这个值可以改变游戏速度
+
+  </script>
+</body>
+</html>

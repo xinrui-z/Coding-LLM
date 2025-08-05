@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打工人时钟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .title {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .clock-container {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .time {
+            font-size: 3.5em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .date {
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .worker-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .work-status {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #495057;
+        }
+
+        .motivation {
+            font-size: 1.1em;
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        .progress-container {
+            margin: 25px 0;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e9ecef;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffa502);
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+
+        .quotes {
+            font-style: italic;
+            color: #868e96;
+            margin-top: 20px;
+            padding: 15px;
+            border-left: 4px solid #4ecdc4;
+            background: #f8f9fa;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .footer {
+            margin-top: 25px;
+            color: #adb5bd;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .title {
+                font-size: 2em;
+            }
+            
+            .time {
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">打工人时钟</h1>
+        
+        <div class="clock-container">
+            <div class="time" id="time">00:00:00</div>
+            <div class="date" id="date">2024年1月1日 星期一</div>
+        </div>
+
+        <div class="worker-info">
+            <div class="work-status" id="workStatus">努力搬砖中...</div>
+            <div class="motivation" id="motivation">每一个不曾起舞的日子，都是对生命的辜负。</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-label">
+                <span>今日进度</span>
+                <span id="progressText">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="quotes" id="quote">
+            "打工人，打工魂，打工都是人上人！"
+        </div>
+
+        <div class="footer">
+            打工人，加油干！💪
+        </div>
+    </div>
+
+    <script>
+        // 更新时钟
+        function updateClock() {
+            const now = new Date();
+            
+            // 更新时间
+            const timeString = now.toLocaleTimeString('zh-CN', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('time').textContent = timeString;
+            
+            // 更新日期
+            const dateString = now.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            });
+            document.getElementById('date').textContent = dateString;
+            
+            // 更新工作状态
+            updateWorkStatus(now);
+            
+            // 更新进度条
+            updateProgress(now);
+        }
+
+        // 更新工作状态
+        function updateWorkStatus(now) {
+            const hour = now.getHours();
+            const workStatus = document.getElementById('workStatus');
+            const motivation = document.getElementById('motivation');
+            
+            let statusText = '';
+            let motivationText = '';
+            
+            if (hour >= 6 && hour < 9) {
+                statusText = '准备上班中...';
+                motivationText = '新的一天，新的希望！';
+            } else if (hour >= 9 && hour < 12) {
+                statusText = '上午摸鱼时间';
+                motivationText = '上午的咖啡是灵魂的燃料！';
+            } else if (hour >= 12 && hour < 14) {
+                statusText = '午休充电中';
+                motivationText = '吃饱了才有力气打工！';
+            } else if (hour >= 14 && hour < 18) {
+                statusText = '下午搬砖ing';
+                motivationText = '坚持就是胜利，打工人都懂！';
+            } else if (hour >= 18 && hour < 20) {
+                statusText = '下班倒计时';
+                motivationText = '胜利在望，加油打工人！';
+            } else if (hour >= 20) {
+                statusText = '加班进行时';
+                motivationText = '今天的努力，是明天的收获！';
+            } else {
+                statusText = '努力搬砖中...';
+                motivationText = '每一个不曾起舞的日子，都是对生命的辜负。';
+            }
+            
+            workStatus.textContent = statusText;
+            motivation.textContent = motivationText;
+        }
+
+        // 更新进度条
+        function updateProgress(now) {
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            
+            // 计算从9点到18点的工作时间进度
+            let progress = 0;
+            if (hour < 9) {
+                progress = 0;
+            } else if (hour >= 18) {
+                progress = 100;
+            } else {
+                const totalMinutes = (18 - 9) * 60; // 总工作分钟数
+                const passedMinutes = (hour - 9) * 60 + minute; // 已过分钟数
+                progress = Math.min(Math.max((passedMinutes / totalMinutes) * 100, 0), 100);
+            }
+            
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = Math.round(progress) + '%';
+        }
+
+        // 随机励志语录
+        function updateQuote() {
+            const quotes = [
+                "打工人，打工魂，打工都是人上人！",
+                "没有困难的工作，只有勇敢的打工人！",
+                "打工不仅能致富，还能锻炼身体！",
+                "今天的努力，是为了明天更好的生活！",
+                "工作使我快乐，搬砖让我充实！",
+                "打工人的眼泪不值钱，但梦想很珍贵！",
+                "每一份努力都不会被辜负！",
+                "生活不止眼前的苟且，还有诗和远方的田野！"
+            ];
+            
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('quote').textContent = `"${randomQuote}"`;
+        }
+
+        // 初始化
+        updateClock();
+        updateQuote();
+        
+        // 每秒更新时钟
+        setInterval(updateClock, 1000);
+        
+        // 每30秒更新一次语录
+        setInterval(updateQuote, 30000);
+    </script>
+</body>
+</html>

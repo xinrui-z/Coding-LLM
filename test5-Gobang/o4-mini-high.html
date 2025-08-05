@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>人机对战五子棋</title>
+  <style>
+    /* 全局重置与布局 */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, #ffe4e1, #e0ffff),
+        radial-gradient(circle 2px at 20% 30%, #fff, transparent),
+        radial-gradient(circle 2px at 80% 70%, #fff, transparent),
+        radial-gradient(circle 1.5px at 50% 20%, #fff, transparent);
+      background-repeat: no-repeat, repeat, repeat, repeat;
+      background-size: cover, 200px 200px, 150px 150px, 100px 100px;
+      font-family: "Arial", sans-serif;
+      user-select: none;
+    }
+    #game {
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 10px;
+      color: #9c27b0;
+      font-size: 2em;
+    }
+    /* 棋盘 */
+    #board {
+      display: grid;
+      grid-template: repeat(15, 40px) / repeat(15, 40px);
+      border: 8px solid #ffd1dc;
+      border-radius: 20px;
+      background-color: #fff4e6;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .cell {
+      width: 40px;
+      height: 40px;
+      border: 1px solid #ffdce1;
+      position: relative;
+    }
+    .cell:hover {
+      background-color: #fffbf0;
+      cursor: pointer;
+    }
+    .piece {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+    }
+    /* 提示与按钮 */
+    #message {
+      margin-top: 10px;
+      font-size: 1.2em;
+      color: #333;
+    }
+    #restart {
+      margin-top: 5px;
+      padding: 8px 16px;
+      font-size: 1em;
+      border: none;
+      border-radius: 10px;
+      background-color: #ffcc80;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    #restart:hover {
+      background-color: #ffb74d;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <h1>五子棋 · 人机对战</h1>
+    <div id="board"></div>
+    <div id="message">你的回合</div>
+    <button id="restart">重新开始</button>
+  </div>
+
+  <script>
+    const SIZE = 15;           // 棋盘：15×15
+    let board, gameOver, humanTurn, boardEl;
+
+    // 初始化游戏
+    function init() {
+      board = Array.from({length: SIZE}, () => Array(SIZE).fill(0));
+      gameOver = false;
+      humanTurn = true;
+      boardEl.innerHTML = "";
+      createBoard();
+      showMessage("你的回合");
+    }
+
+    // 创建棋盘格子
+    function createBoard() {
+      for (let i = 0; i < SIZE; i++) {
+        for (let j = 0; j < SIZE; j++) {
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
+          cell.dataset.x = i;
+          cell.dataset.y = j;
+          cell.addEventListener("click", onCellClick);
+          boardEl.appendChild(cell);
+        }
+      }
+    }
+
+    // 人类落子
+    function onCellClick(e) {
+      if (!humanTurn || gameOver) return;
+      const x = +this.dataset.x, y = +this.dataset.y;
+      if (board[x][y] !== 0) return;
+      placePiece(x, y, 1);
+      if (checkWin(x, y, 1)) {
+        gameOver = true;
+        return showMessage("你赢了 🎉");
+      }
+      humanTurn = false;
+      showMessage("电脑思考中...");
+      setTimeout(aiMove, 500);
+    }
+
+    // AI 随机落子
+    function aiMove() {
+      if (gameOver) return;
+      const empties = [];
+      for (let i = 0; i < SIZE; i++) {
+        for (let j = 0; j < SIZE; j++) {
+          if (board[i][j] === 0) empties.push([i, j]);
+        }
+      }
+      if (empties.length === 0) {
+        gameOver = true;
+        return showMessage("平局 😐");
+      }
+      const [x, y] = empties[Math.floor(Math.random() * empties.length)];
+      placePiece(x, y, 2);
+      if (checkWin(x, y, 2)) {
+        gameOver = true;
+        return showMessage("电脑赢了 😢");
+      }
+      humanTurn = true;
+      showMessage("你的回合");
+    }
+
+    // 放置并渲染棋子
+    function placePiece(x, y, player) {
+      board[x][y] = player;
+      const cell = document.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
+      const span = document.createElement("span");
+      span.classList.add("piece");
+      span.textContent = player === 1 ? "🐱" : "🐼";
+      cell.appendChild(span);
+    }
+
+    // 判断胜利：横、竖、两条斜线
+    function checkWin(x, y, p) {
+      const dirs = [[1,0],[0,1],[1,1],[1,-1]];
+      for (let [dx,dy] of dirs) {
+        let cnt = 1;
+        for (let d = 1; check(x+dx*d, y+dy*d, p); d++) cnt++;
+        for (let d = 1; check(x-dx*d, y-dy*d, p); d++) cnt++;
+        if (cnt >= 5) return true;
+      }
+      return false;
+    }
+    function check(x, y, p) {
+      return x >= 0 && x < SIZE && y >= 0 && y < SIZE && board[x][y] === p;
+    }
+
+    // 更新提示文字
+    function showMessage(msg) {
+      document.getElementById("message").textContent = msg;
+    }
+
+    // 页面加载后初始化
+    window.onload = () => {
+      boardEl = document.getElementById("board");
+      document.getElementById("restart").addEventListener("click", init);
+      init();
+    };
+  </script>
+</body>
+</html>

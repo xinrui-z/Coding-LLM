@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>可爱五子棋 - 人机对战</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  background:linear-gradient(135deg,#ffeef8 0%,#e8f5ff 100%);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+  position:relative;
+}
+.stars{
+  position:absolute;
+  top:0;left:0;
+  width:100%;height:100%;
+  pointer-events:none;
+}
+.star{
+  position:absolute;
+  width:4px;height:4px;
+  background:#fff;
+  border-radius:50%;
+  animation:twinkle 3s infinite;
+}
+@keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
+.game-container{
+  background:rgba(255,255,255,.9);
+  border-radius:30px;
+  padding:30px;
+  box-shadow:0 10px 30px rgba(0,0,0,.1);
+  backdrop-filter:blur(10px);
+}
+.title{
+  text-align:center;
+  color:#ff6b9d;
+  font-size:32px;
+  margin-bottom:20px;
+}
+.game-info{
+  display:flex;
+  justify-content:space-around;
+  margin-bottom:20px;
+  gap:20px;
+}
+.player-info{
+  background:#ffd6e8;
+  padding:15px 25px;
+  border-radius:20px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  box-shadow:0 4px 10px rgba(0,0,0,.1);
+}
+.player-avatar{
+  width:40px;height:40px;
+  border-radius:50%;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:24px;
+}
+.board{
+  display:grid;
+  grid-template-columns:repeat(15,30px);
+  grid-template-rows:repeat(15,30px);
+  gap:0;
+  background:#f5f5f5;
+  border-radius:20px;
+  padding:20px;
+  box-shadow:inset 0 2px 10px rgba(0,0,0,.1);
+}
+.cell{
+  width:30px;height:30px;
+  border:1px solid #e0e0e0;
+  position:relative;
+  cursor:pointer;
+  transition:background .3s;
+}
+.cell:hover{background:rgba(255,182,193,.3)}
+.piece{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:26px;height:26px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  animation:drop .3s;
+}
+@keyframes drop{0%{transform:translate(-50%,-50%) scale(0)}100%{transform:translate(-50%,-50%) scale(1)}}
+.piece.cat{background:#ff9ff3;box-shadow:0 2px 5px rgba(255,159,243,.5)}
+.piece.panda{background:#a8e6cf;box-shadow:0 2px 5px rgba(168,230,207,.5)}
+.controls{margin-top:20px;text-align:center}
+.btn{
+  padding:12px 30px;
+  border:none;
+  border-radius:25px;
+  font-size:16px;
+  cursor:pointer;
+  background:#ffd93d;
+  color:#333;
+  box-shadow:0 4px 10px rgba(0,0,0,.1);
+  transition:all .3s;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 15px rgba(0,0,0,.2)}
+.win-message{
+  position:fixed;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  background:#fff;
+  padding:40px;
+  border-radius:30px;
+  box-shadow:0 10px 30px rgba(0,0,0,.2);
+  text-align:center;
+  display:none;
+  z-index:1000;
+}
+.overlay{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,.5);
+  display:none;
+  z-index:999;
+}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+
+<div class="game-container">
+  <h1 class="title">🌸 可爱五子棋 🌸</h1>
+  <div class="game-info">
+    <div class="player-info"><div class="player-avatar">🐱</div><span>玩家</span></div>
+    <div class="player-info"><div class="player-avatar">🐼</div><span>电脑</span></div>
+  </div>
+  <div class="board" id="board"></div>
+  <div class="controls">
+    <button class="btn" onclick="restartGame()">重新开始</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="win-message" id="winMessage">
+  <h2 id="winText">恭喜获胜！</h2>
+  <button class="btn" onclick="restartGame()">再来一局</button>
+</div>
+
+<script>
+/* 创建星星背景 */
+function createStars(){
+  const stars=document.getElementById('stars');
+  for(let i=0;i<50;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    s.style.animationDelay=Math.random()*3+'s';
+    stars.appendChild(s);
+  }
+}
+
+/* 游戏数据 */
+const SIZE=15;
+let board=Array.from({length:SIZE},()=>Array(SIZE).fill(0));
+let currentPlayer=1; // 1玩家 2电脑
+let gameOver=false;
+
+/* 初始化棋盘 */
+function initBoard(){
+  const b=document.getElementById('board');
+  b.innerHTML='';
+  for(let r=0;r<SIZE;r++){
+    for(let c=0;c<SIZE;c++){
+      const cell=document.createElement('div');
+      cell.className='cell';
+      cell.dataset.r=r;
+      cell.dataset.c=c;
+      cell.addEventListener('click',handleClick);
+      b.appendChild(cell);
+    }
+  }
+}
+
+/* 点击落子 */
+function handleClick(e){
+  if(gameOver||currentPlayer!==1) return;
+  const r=+e.target.dataset.r;
+  const c=+e.target.dataset.c;
+  if(board[r][c]!==0) return;
+  placePiece(r,c,1);
+  if(checkWin(r,c,1)){showWin('🐱 猫咪获胜！');return;}
+  currentPlayer=2;
+  setTimeout(computerMove,500);
+}
+
+/* 放置棋子 */
+function placePiece(r,c,player){
+  board[r][c]=player;
+  const cell=document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+  const piece=document.createElement('div');
+  piece.className=`piece ${player===1?'cat':'panda'}`;
+  piece.textContent=player===1?'🐱':'🐼';
+  cell.appendChild(piece);
+}
+
+/* 电脑简单AI */
+function computerMove(){
+  if(gameOver) return;
+  const empties=[];
+  for(let r=0;r<SIZE;r++){
+    for(let c=0;c<SIZE;c++){
+      if(board[r][c]===0) empties.push([r,c]);
+    }
+  }
+  if(empties.length===0) return;
+  empties.sort((a,b)=>{
+    const da=Math.abs(a[0]-7)+Math.abs(a[1]-7);
+    const db=Math.abs(b[0]-7)+Math.abs(b[1]-7);
+    return da-db;
+  });
+  const [r,c]=empties[0];
+  placePiece(r,c,2);
+  if(checkWin(r,c,2)){showWin('🐼 熊猫获胜！');return;}
+  currentPlayer=1;
+}
+
+/* 检查五连 */
+function checkWin(r,c,player){
+  const dirs=[[0,1],[1,0],[1,1],[1,-1]];
+  for(const [dx,dy] of dirs){
+    let cnt=1;
+    for(let i=1;i<5;i++){
+      const nr=r+dx*i,nc=c+dy*i;
+      if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==player) break;
+      cnt++;
+    }
+    for(let i=1;i<5;i++){
+      const nr=r-dx*i,nc=c-dy*i;
+      if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==player) break;
+      cnt++;
+    }
+    if(cnt>=5){gameOver=true;return true;}
+  }
+  return false;
+}
+
+/* 显示胜利弹窗 */
+function showWin(msg){
+  document.getElementById('winText').textContent=msg;
+  document.getElementById('overlay').style.display='block';
+  document.getElementById('winMessage').style.display='block';
+}
+
+/* 重新开始 */
+function restartGame(){
+  board=Array.from({length:SIZE},()=>Array(SIZE).fill(0));
+  currentPlayer=1;
+  gameOver=false;
+  document.getElementById('overlay').style.display='none';
+  document.getElementById('winMessage').style.display='none';
+  initBoard();
+}
+
+/* 启动 */
+createStars();
+initBoard();
+</script>
+</body>
+</html>

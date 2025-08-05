@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天气预报卡</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .weather-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .weather-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .weather-header {
+            margin-bottom: 25px;
+        }
+
+        .city-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2d3436;
+            margin-bottom: 5px;
+        }
+
+        .date {
+            color: #636e72;
+            font-size: 14px;
+        }
+
+        .weather-animation {
+            height: 200px;
+            position: relative;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        /* 晴天动画 */
+        .sunny {
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+        }
+
+        .sun {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            border-radius: 50%;
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 30px #FFD700;
+            animation: sunRotate 10s linear infinite;
+        }
+
+        .sun-ray {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            animation: sunRays 3s linear infinite;
+        }
+
+        .sun-ray::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            width: 4px;
+            height: 20px;
+            background: #FFD700;
+            transform: translateX(-50%);
+        }
+
+        .sun-ray:nth-child(2) { transform: rotate(30deg); }
+        .sun-ray:nth-child(3) { transform: rotate(60deg); }
+        .sun-ray:nth-child(4) { transform: rotate(90deg); }
+        .sun-ray:nth-child(5) { transform: rotate(120deg); }
+        .sun-ray:nth-child(6) { transform: rotate(150deg); }
+
+        /* 雨天动画 */
+        .rainy {
+            background: linear-gradient(to bottom, #4a5568, #718096);
+        }
+
+        .cloud {
+            width: 120px;
+            height: 60px;
+            background: #CBD5E0;
+            border-radius: 60px;
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 
+                -20px 20px 0 10px #CBD5E0,
+                20px 20px 0 10px #CBD5E0,
+                0 0 20px rgba(0,0,0,0.2);
+        }
+
+        .rain {
+            position: absolute;
+            top: 120px;
+            width: 100%;
+            height: 80px;
+        }
+
+        .raindrop {
+            position: absolute;
+            width: 2px;
+            height: 15px;
+            background: linear-gradient(to bottom, #4299E1, #2B6CB0);
+            border-radius: 0 0 2px 2px;
+            animation: rainFall 1s linear infinite;
+        }
+
+        .raindrop:nth-child(1) { left: 20%; animation-delay: 0s; }
+        .raindrop:nth-child(2) { left: 35%; animation-delay: 0.2s; }
+        .raindrop:nth-child(3) { left: 50%; animation-delay: 0.4s; }
+        .raindrop:nth-child(4) { left: 65%; animation-delay: 0.6s; }
+        .raindrop:nth-child(5) { left: 80%; animation-delay: 0.8s; }
+
+        /* 多云动画 */
+        .cloudy {
+            background: linear-gradient(to bottom, #B2F5EA, #EDF2F7);
+        }
+
+        .big-cloud {
+            width: 150px;
+            height: 70px;
+            background: #E2E8F0;
+            border-radius: 70px;
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 
+                -25px 25px 0 15px #E2E8F0,
+                25px 25px 0 15px #E2E8F0,
+                0 0 20px rgba(0,0,0,0.1);
+            animation: cloudFloat 4s ease-in-out infinite;
+        }
+
+        .small-cloud {
+            width: 80px;
+            height: 40px;
+            background: #F7FAFC;
+            border-radius: 40px;
+            position: absolute;
+            top: 40px;
+            left: 30%;
+            box-shadow: 
+                -15px 15px 0 10px #F7FAFC,
+                15px 15px 0 10px #F7FAFC;
+            animation: smallCloudFloat 6s ease-in-out infinite;
+        }
+
+        .weather-info {
+            margin: 25px 0;
+        }
+
+        .temperature {
+            font-size: 48px;
+            font-weight: bold;
+            color: #2d3436;
+            margin-bottom: 10px;
+        }
+
+        .weather-description {
+            font-size: 18px;
+            color: #636e72;
+            margin-bottom: 15px;
+        }
+
+        .weather-details {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .detail-item {
+            text-align: center;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #636e72;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        .weather-selector {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .weather-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            background: #74b9ff;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .weather-btn:hover {
+            background: #0984e3;
+            transform: translateY(-2px);
+        }
+
+        .weather-btn.active {
+            background: #0984e3;
+            box-shadow: 0 5px 15px rgba(9, 132, 227, 0.4);
+        }
+
+        /* 动画定义 */
+        @keyframes sunRotate {
+            from { transform: translateX(-50%) rotate(0deg); }
+            to { transform: translateX(-50%) rotate(360deg); }
+        }
+
+        @keyframes sunRays {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        @keyframes rainFall {
+            0% { transform: translateY(-20px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(80px); opacity: 0; }
+        }
+
+        @keyframes cloudFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0px); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+
+        @keyframes smallCloudFloat {
+            0%, 100% { transform: translateX(0px) translateY(0px); }
+            50% { transform: translateX(20px) translateY(-5px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="weather-card">
+        <div class="weather-header">
+            <div class="city-name">北京</div>
+            <div class="date" id="current-date"></div>
+        </div>
+
+        <div class="weather-animation" id="weather-animation">
+            <!-- 动画元素将通过JavaScript动态添加 -->
+        </div>
+
+        <div class="weather-info">
+            <div class="temperature" id="temperature">25°</div>
+            <div class="weather-description" id="weather-description">晴天</div>
+        </div>
+
+        <div class="weather-details">
+            <div class="detail-item">
+                <div class="detail-label">湿度</div>
+                <div class="detail-value" id="humidity">65%</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">风速</div>
+                <div class="detail-value" id="wind-speed">12 km/h</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">空气质量</div>
+                <div class="detail-value" id="air-quality">良好</div>
+            </div>
+        </div>
+
+        <div class="weather-selector">
+            <button class="weather-btn active" onclick="changeWeather('sunny')">晴天</button>
+            <button class="weather-btn" onclick="changeWeather('rainy')">雨天</button>
+            <button class="weather-btn" onclick="changeWeather('cloudy')">多云</button>
+        </div>
+    </div>
+
+    <script>
+        // 设置当前日期
+        function setCurrentDate() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            document.getElementById('current-date').textContent = now.toLocaleDateString('zh-CN', options);
+        }
+
+        // 天气数据
+        const weatherData = {
+            sunny: {
+                temperature: '25°',
+                description: '晴天',
+                humidity: '65%',
+                windSpeed: '12 km/h',
+                airQuality: '良好',
+                animation: `
+                    <div class="sun">
+                        <div class="sun-ray"></div>
+                        <div class="sun-ray"></div>
+                        <div class="sun-ray"></div>
+                        <div class="sun-ray"></div>
+                        <div class="sun-ray"></div>
+                        <div class="sun-ray"></div>
+                    </div>
+                `
+            },
+            rainy: {
+                temperature: '18°',
+                description: '小雨',
+                humidity: '85%',
+                windSpeed: '8 km/h',
+                airQuality: '优',
+                animation: `
+                    <div class="cloud"></div>
+                    <div class="rain">
+                        <div class="raindrop"></div>
+                        <div class="raindrop"></div>
+                        <div class="raindrop"></div>
+                        <div class="raindrop"></div>
+                        <div class="raindrop"></div>
+                    </div>
+                `
+            },
+            cloudy: {
+                temperature: '22°',
+                description: '多云',
+                humidity: '75%',
+                windSpeed: '15 km/h',
+                airQuality: '良好',
+                animation: `
+                    <div class="big-cloud"></div>
+                    <div class="small-cloud"></div>
+                `
+            }
+        };
+
+        // 切换天气
+        function changeWeather(weatherType) {
+            // 更新按钮状态
+            document.querySelectorAll('.weather-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 更新天气动画
+            const animationContainer = document.getElementById('weather-animation');
+            animationContainer.className = `weather-animation ${weatherType}`;
+            animationContainer.innerHTML = weatherData[weatherType].animation;
+
+            // 更新天气信息
+            document.getElementById('temperature').textContent = weatherData[weatherType].temperature;
+            document.getElementById('weather-description').textContent = weatherData[weatherType].description;
+            document.getElementById('humidity').textContent = weatherData[weatherType].humidity;
+            document.getElementById('wind-speed').textContent = weatherData[weatherType].windSpeed;
+            document.getElementById('air-quality').textContent = weatherData[weatherType].airQuality;
+        }
+
+        // 初始化
+        setCurrentDate();
+        changeWeather('sunny');
+    </script>
+</body>
+</html>

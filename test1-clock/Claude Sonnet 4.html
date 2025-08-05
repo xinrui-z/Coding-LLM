@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打工人时钟 - 努力奋斗每一天</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft YaHei', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .title {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #667eea; }
+            to { text-shadow: 0 0 20px #fff, 0 0 30px #667eea, 0 0 40px #667eea; }
+        }
+
+        .clock {
+            font-size: 4em;
+            font-weight: bold;
+            margin: 30px 0;
+            font-family: 'Courier New', monospace;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            letter-spacing: 4px;
+        }
+
+        .date {
+            font-size: 1.8em;
+            margin: 20px 0;
+            opacity: 0.9;
+        }
+
+        .work-status {
+            font-size: 1.5em;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .work-time {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .time-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 5px;
+            min-width: 120px;
+        }
+
+        .time-item h4 {
+            margin-bottom: 5px;
+            color: #ffeb3b;
+        }
+
+        .motivational-text {
+            font-size: 1.3em;
+            margin: 20px 0;
+            font-style: italic;
+            opacity: 0.9;
+            animation: fadeInOut 3s ease-in-out infinite;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            transition: width 1s ease;
+            border-radius: 10px;
+        }
+
+        .weekend-mode {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        }
+
+        @media (max-width: 768px) {
+            .title { font-size: 2em; }
+            .clock { font-size: 2.5em; }
+            .date { font-size: 1.4em; }
+            .work-time { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">⚡ 打工人时钟 ⚡</h1>
+        
+        <div class="clock" id="clock">00:00:00</div>
+        
+        <div class="date" id="date">2024年1月1日 星期一</div>
+        
+        <div class="work-status" id="workStatus">准备开始新的一天！</div>
+        
+        <div class="work-time">
+            <div class="time-item">
+                <h4>🌅 上班时间</h4>
+                <div>09:00</div>
+            </div>
+            <div class="time-item">
+                <h4>🍽️ 午休时间</h4>
+                <div>12:00</div>
+            </div>
+            <div class="time-item">
+                <h4>🌙 下班时间</h4>
+                <div>18:00</div>
+            </div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        
+        <div class="motivational-text" id="motivationalText">
+            打工人，打工魂，打工都是人上人！
+        </div>
+    </div>
+
+    <script>
+        const motivationalTexts = [
+            "打工人，打工魂，打工都是人上人！",
+            "早上好，打工人！为了梦想，冲！",
+            "摸鱼一时爽，一直摸鱼一直爽！",
+            "今天也要元气满满地工作呀！",
+            "努力工作，是为了更好的摸鱼！",
+            "打工不积极，思想有问题！",
+            "加油打工人，今天也要努力鸭！",
+            "工作使我快乐，快乐使我工作！",
+            "下班后的时间才是真正的人生！"
+        ];
+
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+            
+            // 更新日期
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                weekday: 'long' 
+            };
+            document.getElementById('date').textContent = now.toLocaleDateString('zh-CN', options);
+            
+            // 更新工作状态
+            updateWorkStatus(hours, minutes, now.getDay());
+            
+            // 更新进度条
+            updateProgress(hours, minutes);
+        }
+
+        function updateWorkStatus(hours, minutes, dayOfWeek) {
+            const currentTime = hours * 60 + minutes;
+            const statusElement = document.getElementById('workStatus');
+            const body = document.body;
+            
+            // 检查是否是周末
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                statusElement.textContent = "🎉 愉快的周末时光！";
+                body.classList.add('weekend-mode');
+                return;
+            } else {
+                body.classList.remove('weekend-mode');
+            }
+            
+            if (currentTime < 540) { // 9:00之前
+                statusElement.textContent = "😴 还在睡梦中，准备迎接新的一天！";
+            } else if (currentTime < 720) { // 9:00-12:00
+                statusElement.textContent = "💪 上午工作时间，精力充沛！";
+            } else if (currentTime < 780) { // 12:00-13:00
+                statusElement.textContent = "🍽️ 午餐时间，补充能量！";
+            } else if (currentTime < 1080) { // 13:00-18:00
+                statusElement.textContent = "⚡ 下午工作时间，继续加油！";
+            } else if (currentTime < 1320) { // 18:00-22:00
+                statusElement.textContent = "🌙 下班了！享受个人时光～";
+            } else {
+                statusElement.textContent = "😴 夜深了，记得早点休息！";
+            }
+        }
+
+        function updateProgress(hours, minutes) {
+            const currentTime = hours * 60 + minutes;
+            const workStart = 9 * 60; // 9:00
+            const workEnd = 18 * 60; // 18:00
+            
+            let progress = 0;
+            if (currentTime >= workStart && currentTime <= workEnd) {
+                progress = ((currentTime - workStart) / (workEnd - workStart)) * 100;
+            } else if (currentTime > workEnd) {
+                progress = 100;
+            }
+            
+            document.getElementById('progress').style.width = `${progress}%`;
+        }
+
+        function changeMotivationalText() {
+            const randomIndex = Math.floor(Math.random() * motivationalTexts.length);
+            document.getElementById('motivationalText').textContent = motivationalTexts[randomIndex];
+        }
+
+        // 初始化
+        updateClock();
+        changeMotivationalText();
+
+        // 每秒更新时钟
+        setInterval(updateClock, 1000);
+
+        // 每10秒更换励志文案
+        setInterval(changeMotivationalText, 10000);
+
+        // 添加点击时钟更换文案的功能
+        document.getElementById('clock').addEventListener('click', changeMotivationalText);
+    </script>
+</body>
+</html>

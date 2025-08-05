@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【您的餐厅名称】 - 官方主页</title>
+    <style>
+        /* --- 全局样式和配色 --- */
+        :root {
+            --bg-color: #2c2c2c; /* 深灰色背景 */
+            --text-color: #f0f0f0; /* 浅灰色文字 */
+            --primary-color: #d4af37; /* 金色/黄色，用于强调 */
+            --card-bg-color: #3a3a3a; /* 卡片背景色 */
+            --footer-bg-color: #1e1e1e; /* 页脚背景色 */
+            --font-family: 'Helvetica Neue', 'Hiragino Sans GB', 'WenQuanYi Micro Hei', 'Microsoft Yahei', sans-serif;
+        }
+
+        /* --- 基础重置 --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth; /* 平滑滚动效果 */
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* --- 容器和通用样式 --- */
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1, h2, h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        h1 { font-size: 3em; }
+        h2 { font-size: 2.5em; text-align: center; }
+        h3 { font-size: 1.8em; }
+        p { margin-bottom: 15px; }
+
+        /* --- 导航栏 --- */
+        .navbar {
+            background-color: rgba(30, 30, 30, 0.9); /* 半透明背景 */
+            backdrop-filter: blur(10px); /* 毛玻璃效果 */
+            border-bottom: 1px solid var(--primary-color);
+            position: fixed; /* 固定在顶部 */
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .navbar ul {
+            list-style: none;
+            display: flex;
+            gap: 25px;
+        }
+
+        .navbar ul li a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 1em;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .navbar ul li a:hover, .navbar ul li a.active {
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+        }
+        
+        /* --- 欢迎区域 (Hero Section) --- */
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80') center/cover no-repeat;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .hero h1 {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
+
+        .hero p {
+            font-size: 1.2em;
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
+
+        .cta-button {
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+            padding: 15px 30px;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 50px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .cta-button:hover {
+            background-color: #e5c15f;
+            transform: scale(1.05);
+        }
+
+        /* --- 关于我们区域 --- */
+        #about {
+            background-color: var(--bg-color);
+            padding: 80px 0;
+        }
+        
+        #about .about-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        /* --- 菜单展示区 --- */
+        #menu {
+            background-color: var(--card-bg-color);
+            padding: 80px 0;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .menu-category {
+            background-color: var(--bg-color);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .menu-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #555;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .menu-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 5px;
+        }
+
+        .menu-item-header h4 {
+            color: var(--text-color);
+            font-size: 1.2em;
+        }
+
+        .menu-item-price {
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .menu-item-description {
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        /* --- 页脚 --- */
+        .footer {
+            background-color: var(--footer-bg-color);
+            padding: 60px 0 20px 0;
+            color: #ccc;
+        }
+        
+        .footer-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-section {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .footer-section h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        .footer-section ul {
+            list-style: none;
+        }
+        
+        .footer-section ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer-section ul li a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-section ul li a:hover {
+            color: var(--primary-color);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #444;
+            font-size: 0.9em;
+        }
+
+        /* --- 响应式设计 --- */
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5em; }
+            h2 { font-size: 2em; }
+
+            .navbar {
+                flex-direction: column;
+                padding: 10px;
+            }
+
+            .navbar .logo {
+                margin-bottom: 10px;
+            }
+            
+            .navbar ul {
+                gap: 10px;
+            }
+
+            .hero {
+                height: 70vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ======================= 导航栏 ======================= -->
+    <header>
+        <nav class="navbar">
+            <a href="#" class="logo">飨宴阁</a>
+            <ul>
+                <li><a href="#hero" class="active">首页</a></li>
+                <li><a href="#about">关于我们</a></li>
+                <li><a href="#menu">品味菜单</a></li>
+                <li><a href="#contact">联系我们</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- ======================= 欢迎区域 ======================= -->
+        <section id="hero" class="hero">
+            <h1>欢迎来到飨宴阁</h1>
+            <p>融合传统与创新的美食艺术，每一口都是一场味蕾的盛宴。</p>
+            <a href="#menu" class="cta-button">探索我们的菜单</a>
+        </section>
+
+        <!-- ======================= 关于我们区域 ======================= -->
+        <section id="about">
+            <div class="container">
+                <div class="about-content">
+                    <h2>关于我们</h2>
+                    <p>飨宴阁不仅仅是一家餐厅，更是一个分享美食与快乐的空间。我们坚持选用最新鲜的时令食材，由经验丰富的主厨团队精心烹制。无论是温馨的家庭聚餐，还是浪漫的二人世界，我们都致力于为您提供无与伦比的用餐体验。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================= 菜单展示区 ======================= -->
+        <section id="menu">
+            <div class="container">
+                <h2>品味菜单</h2>
+                <div class="menu-grid">
+                    <!-- 菜单分类1: 前菜 -->
+                    <div class="menu-category">
+                        <h3>前菜 Appetizers</h3>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>松露野菌汤</h4>
+                                <span class="menu-item-price">¥68</span>
+                            </div>
+                            <p class="menu-item-description">精选多种野生菌菇，搭配意大利黑松露酱，香气浓郁。</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>香煎北海道带子</h4>
+                                <span class="menu-item-price">¥98</span>
+                            </div>
+                            <p class="menu-item-description">鲜嫩的北海道带子，两面金黄，佐以柠檬黄油汁。</p>
+                        </div>
+                    </div>
+
+                    <!-- 菜单分类2: 主菜 -->
+                    <div class="menu-category">
+                        <h3>主菜 Main Courses</h3>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>炙烤安格斯牛排</h4>
+                                <span class="menu-item-price">¥288</span>
+                            </div>
+                            <p class="menu-item-description">顶级安格斯西冷牛排，炭火炙烤，肉质鲜嫩多汁。</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>法式香草烤羊排</h4>
+                                <span class="menu-item-price">¥218</span>
+                            </div>
+                            <p class="menu-item-description">迷迭香与百里香腌制，低温慢烤，外酥里嫩。</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>西班牙海鲜饭</h4>
+                                <span class="menu-item-price">¥198</span>
+                            </div>
+                            <p class="menu-item-description">藏红花饭底，配以大虾、青口、蛤蜊等丰富海鲜。</p>
+                        </div>
+                    </div>
+
+                    <!-- 菜单分类3: 甜点与饮品 -->
+                    <div class="menu-category">
+                        <h3>甜点 & 饮品 Desserts & Drinks</h3>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>熔岩巧克力蛋糕</h4>
+                                <span class="menu-item-price">¥58</span>
+                            </div>
+                            <p class="menu-item-description">暖心黑巧克力熔岩，搭配香草冰淇淋，冷热交融。</p>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-item-header">
+                                <h4>夏日特调</h4>
+                                <span class="menu-item-price">¥45</span>
+                            </div>
+                            <p class="menu-item-description">新鲜水果与苏打水的完美结合，清爽解腻。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ======================= 页脚 ======================= -->
+    <footer id="contact" class="footer">
+        <div class="container footer-container">
+            <div class="footer-section">
+                <h3>联系我们</h3>
+                <p>地址：某某市中心路123号</p>
+                <p>预定电话：(010) 1234-5678</p>
+                <p>电子邮件：contact@xiangyange.com</p>
+            </div>
+            <div class="footer-section">
+                <h3>营业时间</h3>
+                <p>周二至周五：17:00 - 22:00</p>
+                <p>周六至周日：11:30 - 22:30</p>
+                <p>周一休息</p>
+            </div>
+            <div class="footer-section">
+                <h3>关注我们</h3>
+                <ul>
+                    <li><a href="#" target="_blank">微博</a></li>
+                    <li><a href="#" target="_blank">微信公众号</a></li>
+                    <li><a href="#" target="_blank">大众点评</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2024 【您的餐厅名称】 版权所有。</p>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雅苑餐厅 - 品味生活，享受美食</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #8B4513;
+            --secondary-color: #D2691E;
+            --accent-color: #FFD700;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --bg-light: #FFF8DC;
+            --bg-white: #FFFFFF;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: var(--bg-light);
+        }
+
+        /* 导航栏样式 */
+        header {
+            background-color: var(--bg-white);
+            box-shadow: var(--shadow);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .logo:hover {
+            color: var(--secondary-color);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero 区域 */
+        .hero {
+            margin-top: 80px;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://picsum.photos/seed/restaurant-hero/1920/600.jpg') center/cover;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-content p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background-color: var(--accent-color);
+            color: var(--text-dark);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .cta-button:hover {
+            background-color: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        /* 主要内容区域 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        /* 餐厅介绍 */
+        .about-section {
+            background-color: var(--bg-white);
+            padding: 3rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            margin-bottom: 4rem;
+        }
+
+        .about-section h2 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .about-text {
+            color: var(--text-light);
+            line-height: 1.8;
+        }
+
+        .about-image {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .about-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+
+        .about-image:hover img {
+            transform: scale(1.05);
+        }
+
+        /* 菜单展示区 */
+        .menu-section {
+            margin-bottom: 4rem;
+        }
+
+        .menu-section h2 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .menu-categories {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 0.8rem 1.5rem;
+            background-color: var(--bg-white);
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .category-btn.active,
+        .category-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .menu-item {
+            background-color: var(--bg-white);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: none;
+        }
+
+        .menu-item.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .menu-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-item h3 {
+            color: var(--primary-color);
+            font-size: 1.3rem;
+        }
+
+        .menu-price {
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .menu-description {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .menu-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 0.2rem 0.8rem;
+            background-color: var(--bg-light);
+            color: var(--secondary-color);
+            border-radius: 15px;
+            font-size: 0.85rem;
+        }
+
+        /* 页脚 */
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 3rem 0 1rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: var(--accent-color);
+        }
+
+        .footer-section p,
+        .footer-section li {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--accent-color);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: 1rem;
+                font-size: 0.9rem;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <nav>
+            <a href="#" class="logo">雅苑餐厅</a>
+            <ul class="nav-links">
+                <li><a href="#home">首页</a></li>
+                <li><a href="#menu">菜单</a></li>
+                <li><a href="#about">关于我们</a></li>
+                <li><a href="#contact">联系方式</a></li>
+                <li><a href="#reservation">在线预订</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero 区域 -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1>雅苑餐厅</h1>
+            <p>品味生活，享受美食</p>
+            <a href="#reservation" class="cta-button">立即预订</a>
+        </div>
+    </section>
+
+    <!-- 主要内容 -->
+    <main class="container">
+        <!-- 餐厅介绍 -->
+        <section class="about-section" id="about">
+            <h2>关于雅苑</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>雅苑餐厅成立于2010年，致力于为顾客提供最优质的用餐体验。我们精选新鲜食材，融合传统与现代烹饪技艺，为您呈现一道道美味佳肴。</p>
+                    <p>餐厅环境优雅舒适，无论是商务宴请、家庭聚餐还是朋友小聚，都是您的理想选择。我们的专业团队将竭诚为您服务，让每一次用餐都成为美好的回忆。</p>
+                    <p>营业时间：周一至周日 11:00 - 22:00</p>
+                </div>
+                <div class="about-image">
+                    <img src="https://picsum.photos/seed/restaurant-interior/600/400.jpg" alt="餐厅内部环境">
+                </div>
+            </div>
+        </section>
+
+        <!-- 菜单展示 -->
+        <section class="menu-section" id="menu">
+            <h2>精选菜单</h2>
+            <div class="menu-categories">
+                <button class="category-btn active" data-category="all">全部</button>
+                <button class="category-btn" data-category="appetizer">开胃菜</button>
+                <button class="category-btn" data-category="main">主菜</button>
+                <button class="category-btn" data-category="dessert">甜品</button>
+                <button class="category-btn" data-category="drink">饮品</button>
+            </div>
+            <div class="menu-grid">
+                <!-- 开胃菜 -->
+                <div class="menu-item show" data-category="appetizer">
+                    <div class="menu-item-header">
+                        <h3>凉拌黄瓜</h3>
+                        <span class="menu-price">¥28</span>
+                    </div>
+                    <p class="menu-description">新鲜黄瓜配以特制调料，清爽开胃</p>
+                    <div class="menu-tags">
+                        <span class="tag">清爽</span>
+                        <span class="tag">素食</span>
+                    </div>
+                </div>
+
+                <div class="menu-item show" data-category="appetizer">
+                    <div class="menu-item-header">
+                        <h3>蒜蓉扇贝</h3>
+                        <span class="menu-price">¥58</span>
+                    </div>
+                    <p class="menu-description">新鲜扇贝配以香蒜，鲜美可口</p>
+                    <div class="menu-tags">
+                        <span class="tag">海鲜</span>
+                        <span class="tag">推荐</span>
+                    </div>
+                </div>
+
+                <!-- 主菜 -->
+                <div class="menu-item show" data-category="main">
+                    <div class="menu-item-header">
+                        <h3>红烧肉</h3>
+                        <span class="menu-price">¥88</span>
+                    </div>
+                    <p class="menu-description">传统工艺制作，肥而不腻，入口即化</p>
+                    <div class="menu-tags">
+                        <span class="tag">招牌</span>
+                        <span class="tag">必点</span>
+                    </div>
+                </div>
+
+                <div class="menu-item show" data-category="main">
+                    <div class="menu-item-header">
+                        <h3>清蒸鲈鱼</h3>
+                        <span class="menu-price">¥128</span>
+                    </div>
+                    <p class="menu-description">鲜活鲈鱼清蒸，保持原汁原味</p>
+                    <div class="menu-tags">
+                        <span class="tag">海鲜</span>
+                        <span class="tag">健康</span>
+                    </div>
+                </div>
+
+                <div class="menu-item show" data-category="main">
+                    <div class="menu-item-header">
+                        <h3>宫保鸡丁</h3>
+                        <span class="menu-price">¥68</span>
+                    </div>
+                    <p class="menu-description">川菜经典，麻辣鲜香，回味无穷</p>
+                    <div class="menu-tags">
+                        <span class="tag">川菜</span>
+                        <span class="tag">辣</span>
+                    </div>
+                </div>
+
+                <!-- 甜品 -->
+                <div class="menu-item show" data-category="dessert">
+                    <div class="menu-item-header">
+                        <h3>提拉米苏</h3>
+                        <span class="menu-price">¥38</span>
+                    </div>
+                    <p class="menu-description">意式经典甜品，香醇浓郁</p>
+                    <div class="menu-tags">
+                        <span class="tag">甜品</span>
+                        <span class="tag">进口</span>
+                    </div>
+                </div>
+
+                <div class="menu-item show" data-category="dessert">
+                    <div class="menu-item-header">
+                        <h3>芒果布丁</h3>
+                        <span class="menu-price">¥28</span>
+                    </div>
+                    <p class="menu-description">新鲜芒果制作，口感顺滑</p>
+                    <div class="menu-tags">
+                        <span class="tag">甜品</span>
+                        <span class="tag">水果</span>
+                    </div>
+                </div>
+
+                <!-- 饮品 -->
+                <div class="menu-item show" data-category="drink">
+                    <div class="menu-item-header">
+                        <h3>鲜榨橙汁</h3>
+                        <span class="menu-price">¥25</span>
+                    </div>
+                    <p class="menu-description">100%鲜榨橙汁，维C丰富</p>
+                    <div class="menu-tags">
+                        <span class="tag">饮品</span>
+                        <span class="tag">健康</span>
+                    </div>
+                </div>
+
+                <div class="menu-item show" data-category="drink">
+                    <div class="menu-item-header">
+                        <h3>拿铁咖啡</h3>
+                        <span class="menu-price">¥32</span>
+                    </div>
+                    <p class="menu-description">精选咖啡豆，香浓顺滑</p>
+                    <div class="menu-tags">
+                        <span class="tag">咖啡</span>
+                        <span class="tag">进口</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>联系我们</h3>
+                <p>地址：北京市朝阳区建国路88号</p>
+                <p>电话：010-8888-8888</p>
+                <p>邮箱：info@yayuanrestaurant.com</p>
+            </div>
+            <div class="footer-section">
+                <h3>营业时间</h3>
+                <ul>
+                    <li>周一至周五：11:00 - 22:00</li>
+                    <li>周六至周日：10:30 - 22:30</li>
+                    <li>节假日：10:00 - 23:00</li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>快速链接</h3>
+                <ul>
+                    <li><a href="#menu">菜单</a></li>
+                    <li><a href="#about">关于我们</a></li>
+                    <li><a href="#reservation">在线预订</a></li>
+                    <li><a href="#">会员中心</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>关注我们</h3>
+                <p>获取最新优惠和活动信息</p>
+                <div class="social-links">
+                    <a href="#">微</a>
+                    <a href="#">博</a>
+                    <a href="#">抖</a>
+                    <a href="#">红</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 雅苑餐厅. All rights reserved. | 京ICP备12345678号</p>
+        </div>
+    </footer>
+
+    <script>
+        // 菜单分类筛选功能
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        const menuItems = document.querySelectorAll('.menu-item');
+
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 移除所有按钮的active类
+                categoryBtns.forEach(b => b.classList.remove('active'));
+                // 添加当前按钮的active类
+                btn.classList.add('active');
+
+                const category = btn.getAttribute('data-category');
+
+                menuItems.forEach(item => {
+                    if (category === 'all' || item.getAttribute('data-category') === category) {
+                        item.classList.add('show');
+                    } else {
+                        item.classList.remove('show');
+                    }
+                });
+            });
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 导航栏滚动效果
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            const header = document.querySelector('header');
+
+            if (currentScroll > 100) {
+                header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+            } else {
+                header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+            }
+
+            lastScroll = currentScroll;
+        });
+    </script>
+</body>
+</html>

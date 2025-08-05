@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>打工人时钟</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f0f0f0, #dcdcdc);
+      font-family: "Microsoft YaHei", sans-serif;
+    }
+    .clock-container {
+      text-align: center;
+      background: #fff;
+      padding: 40px 60px;
+      border: 4px solid #009688;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .time {
+      font-size: 5rem;
+      color: #009688;
+      letter-spacing: 4px;
+    }
+    .slogan {
+      margin-top: 10px;
+      font-size: 1.4rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="clock-container">
+    <div class="time" id="time">00:00:00</div>
+    <div class="slogan">打工人，加油！今日又是努力搬砖的一天～</div>
+  </div>
+
+  <script>
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('time').textContent = `${h}:${m}:${s}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
+</body>
+</html>

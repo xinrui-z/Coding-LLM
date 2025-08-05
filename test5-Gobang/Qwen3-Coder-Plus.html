@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五子棋 - 人机对战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial Rounded MT Bold', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #ffd1dc 0%, #c9e9ff 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            border: 3px solid #ffb6c1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 背景星星装饰 */
+        .game-container::before {
+            content: "";
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-image: radial-gradient(#ffd700 2px, transparent 2px);
+            background-size: 15px 15px;
+            opacity: 0.3;
+            border-radius: 50%;
+        }
+
+        .game-container::after {
+            content: "";
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background-image: radial-gradient(#ff69b4 1.5px, transparent 1.5px);
+            background-size: 12px 12px;
+            opacity: 0.4;
+            border-radius: 50%;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .game-title {
+            color: #ff6b9d;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-subtitle {
+            color: #6b9dff;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(to right, #fff5f7, #f0f8ff);
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .human-icon {
+            background: linear-gradient(45deg, #ff9ec0, #ff6b9d);
+            color: white;
+        }
+
+        .ai-icon {
+            background: linear-gradient(45deg, #87ceff, #6b9dff);
+            color: white;
+        }
+
+        .status-display {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #ff6b9d;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            grid-template-rows: repeat(15, 1fr);
+            gap: 1px;
+            width: 500px;
+            height: 500px;
+            background: #d4a574;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .board-cell {
+            background: #f5deb3;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .board-cell:hover {
+            background: #f0c9a0;
+            transform: scale(1.05);
+        }
+
+        .board-cell::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(139, 69, 19, 0.3);
+        }
+
+        .board-cell::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: rgba(139, 69, 19, 0.3);
+        }
+
+        /* 天元和星位标记 */
+        .board-cell.star-point::before,
+        .board-cell.star-point::after {
+            content: '';
+            position: absolute;
+            background: #8b4513;
+            border-radius: 50%;
+        }
+
+        .board-cell.star-point::before {
+            width: 8px;
+            height: 8px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .chess-piece {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            animation: pieceAppear 0.3s ease-out;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes pieceAppear {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .human-piece {
+            background: linear-gradient(135deg, #ff9ec0, #ff6b9d);
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .ai-piece {
+            background: linear-gradient(135deg, #87ceff, #6b9dff);
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff9ec0, #ff6b9d);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 157, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #87ceff, #6b9dff);
+            box-shadow: 0 5px 15px rgba(107, 157, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 8px 20px rgba(107, 157, 255, 0.4);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .game-board {
+                width: 300px;
+                height: 300px;
+            }
+
+            .game-title {
+                font-size: 2em;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+        }
+
+        /* 获胜提示动画 */
+        @keyframes winAnimation {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .winning-piece {
+            animation: winAnimation 1s ease-in-out infinite;
+            box-shadow: 0 0 20px #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">🐱 五子棋 🐼</h1>
+            <p class="game-subtitle">人机对战 - 温馨可爱版</p>
+        </div>
+
+        <div class="game-info">
+            <div class="player-info">
+                <div class="player-icon human-icon">🐱</div>
+                <span>玩家 (猫咪)</span>
+            </div>
+            <div class="status-display" id="status">轮到你下棋啦！</div>
+            <div class="player-info">
+                <div class="player-icon ai-icon">🐼</div>
+                <span>电脑 (熊猫)</span>
+            </div>
+        </div>
+
+        <div class="game-board" id="gameBoard">
+            <!-- 棋盘将通过JavaScript生成 -->
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="resetGame()">🔄 重新开始</button>
+            <button class="btn btn-secondary" onclick="undoMove()">↩️ 悔棋</button>
+        </div>
+    </div>
+
+    <script>
+        class GomokuGame {
+            constructor() {
+                this.board = Array(15).fill().map(() => Array(15).fill(0));
+                this.currentPlayer = 1; // 1 = 玩家, 2 = AI
+                this.gameOver = false;
+                this.moveHistory = [];
+                this.initializeBoard();
+            }
+
+            initializeBoard() {
+                const gameBoard = document.getElementById('gameBoard');
+                gameBoard.innerHTML = '';
+
+                for (let i = 0; i < 15; i++) {
+                    for (let j = 0; j < 15; j++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'board-cell';
+                        cell.dataset.row = i;
+                        cell.dataset.col = j;
+
+                        // 添加天元和星位标记
+                        if ((i === 7 && j === 7) || 
+                            (i === 3 && j === 3) || (i === 3 && j === 11) || 
+                            (i === 11 && j === 3) || (i === 11 && j === 11)) {
+                            cell.classList.add('star-point');
+                        }
+
+                        cell.addEventListener('click', () => this.makeMove(i, j));
+                        gameBoard.appendChild(cell);
+                    }
+                }
+            }
+
+            makeMove(row, col) {
+                if (this.board[row][col] !== 0 || this.gameOver || this.currentPlayer !== 1) {
+                    return;
+                }
+
+                this.board[row][col] = 1;
+                this.moveHistory.push({row, col, player: 1});
+                this.updateBoard();
+                
+                if (this.checkWin(row, col, 1)) {
+                    this.endGame('🎉 恭喜你赢了！猫咪最棒！');
+                    return;
+                }
+
+                if (this.isBoardFull()) {
+                    this.endGame('🤝 平局！再来一局吧！');
+                    return;
+                }
+
+                this.currentPlayer = 2;
+                document.getElementById('status').textContent = '熊猫正在思考...';
+                
+                // AI思考延迟
+                setTimeout(() => {
+                    this.makeAIMove();
+                }, 1000);
+            }
+
+            makeAIMove() {
+                if (this.gameOver) return;
+
+                // 简单的AI逻辑：随机选择空位
+                let emptyCells = [];
+                for (let i = 0; i < 15; i++) {
+                    for (let j = 0; j < 15; j++) {
+                        if (this.board[i][j] === 0) {
+                            emptyCells.push({row: i, col: j});
+                        }
+                    }
+                }
+
+                if (emptyCells.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * emptyCells.length);
+                    const {row, col} = emptyCells[randomIndex];
+                    
+                    this.board[row][col] = 2;
+                    this.moveHistory.push({row, col, player: 2});
+                    this.updateBoard();
+
+                    if (this.checkWin(row, col, 2)) {
+                        this.endGame('🐼 电脑获胜！再来一局吧！');
+                        return;
+                    }
+
+                    if (this.isBoardFull()) {
+                        this.endGame('🤝 平局！再来一局吧！');
+                        return;
+                    }
+                }
+
+                this.currentPlayer = 1;
+                document.getElementById('status').textContent = '轮到你下棋啦！';
+            }
+
+            updateBoard() {
+                const cells = document.querySelectorAll('.board-cell');
+                cells.forEach(cell => {
+                    const row = parseInt(cell.dataset.row);
+                    const col = parseInt(cell.dataset.col);
+                    const value = this.board[row][col];
+                    
+                    cell.innerHTML = '';
+                    if (value === 1) {
+                        const piece = document.createElement('div');
+                        piece.className = 'chess-piece human-piece';
+                        piece.textContent = '🐱';
+                        cell.appendChild(piece);
+                    } else if (value === 2) {
+                        const piece = document.createElement('div');
+                        piece.className = 'chess-piece ai-piece';
+                        piece.textContent = '🐼';
+                        cell.appendChild(piece);
+                    }
+                });
+            }
+
+            checkWin(row, col, player) {
+                const directions = [
+                    [0, 1], [1, 0], [1, 1], [1, -1]
+                ];
+
+                for (let [dx, dy] of directions) {
+                    let count = 1;
+                    
+                    // 向一个方向检查
+                    for (let i = 1; i < 5; i++) {
+                        const newRow = row + dx * i;
+                        const newCol = col + dy * i;
+                        if (newRow >= 0 && newRow < 15 && newCol >= 0 && newCol < 15 && 
+                            this.board[newRow][newCol] === player) {
+                            count++;
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    // 向相反方向检查
+                    for (let i = 1; i < 5; i++) {
+                        const newRow = row - dx * i;
+                        const newCol = col - dy * i;
+                        if (newRow >= 0 && newRow < 15 && newCol >= 0 && newCol < 15 && 
+                            this.board[newRow][newCol] === player) {
+                            count++;
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    if (count >= 5) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            isBoardFull() {
+                for (let i = 0; i < 15; i++) {
+                    for (let j = 0; j < 15; j++) {
+                        if (this.board[i][j] === 0) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+
+            endGame(message) {
+                this.gameOver = true;
+                document.getElementById('status').textContent = message;
+            }
+
+            reset() {
+                this.board = Array(15).fill().map(() => Array(15).fill(0));
+                this.currentPlayer = 1;
+                this.gameOver = false;
+                this.moveHistory = [];
+                this.updateBoard();
+                document.getElementById('status').textContent = '轮到你下棋啦！';
+            }
+
+            undo() {
+                if (this.moveHistory.length === 0 || this.gameOver) return;
+
+                const lastMove = this.moveHistory.pop();
+                this.board[lastMove.row][lastMove.col] = 0;
+                
+                if (this.moveHistory.length > 0) {
+                    const prevMove = this.moveHistory[this.moveHistory.length - 1];
+                    this.currentPlayer = prevMove.player === 1 ? 2 : 1;
+                } else {
+                    this.currentPlayer = 1;
+                }
+
+                this.gameOver = false;
+                this.updateBoard();
+                document.getElementById('status').textContent = 
+                    this.currentPlayer === 1 ? '轮到你下棋啦！' : '熊猫正在思考...';
+            }
+        }
+
+        // 初始化游戏
+        const game = new GomokuGame();
+
+        // 全局函数
+        function resetGame() {
+            game.reset();
+        }
+
+        function undoMove() {
+            game.undo();
+        }
+
+        // 添加一些装饰性动画
+        document.addEventListener('DOMContentLoaded', function() {
+            // 创建飘落的星星效果
+            const container = document.querySelector('.game-container');
+            for (let i = 0; i < 15; i++) {
+                const star = document.createElement('div');
+                star.style.cssText = `
+                    position: absolute;
+                    width: 4px;
+                    height: 4px;
+                    background: #ffd700;
+                    border-radius: 50%;
+                    animation: twinkle ${3 + Math.random() * 2}s infinite;
+                    left: ${Math.random() * 100}%;
+                    top: ${Math.random() * 100}%;
+                    opacity: ${0.3 + Math.random() * 0.7};
+                `;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                container.appendChild(star);
+            }
+
+            // 添加闪烁动画
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes twinkle {
+                    0%, 100% { opacity: 0.3; }
+                    50% { opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>
