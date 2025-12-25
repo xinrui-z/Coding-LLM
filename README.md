@@ -1,7 +1,7 @@
 
 # Programming LLM Benchmark: Code Generation & Game Development  
 
-This benchmark evaluates **6 leading programming LLMs** on real-world tasks (frontend development, game design, etc.) using [胜算云「AI群聊」](https://router.shengsuan.com/chat). Tested models:  
+This benchmark evaluates **6 leading programming LLMs** on real-world tasks (frontend development, game design, etc.) Tested models:  
 **Qwen3-Coder-Plus, Kimi K2, GLM-4.5, Claude Sonnet 4, Gemini 2.5 Pro, OpenAI o4-mini-high**.  
 
 ## Key Findings  
