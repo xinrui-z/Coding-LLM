@@ -29,5 +29,4 @@ This benchmark evaluates **6 leading programming LLMs** on real-world tasks (fro
 ### Key Features:  
 - **Task Diversity**: Covers frontend design, game logic, and interactive elements.  
 - **Actionable Insights**: Direct model recommendations for different needs.  
-- **Transparent Platform**: Tests run via [胜算云「AI群聊」](https://router.shengsuan.com/chat).  
 
